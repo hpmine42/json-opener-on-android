@@ -1,38 +1,60 @@
 {
   "app": "JSON Opener",
   "version": "2.0.0",
-  "author": "Local",
+  "author": "JSON Opener Team",
+  "language": "en",
   "published": "2026-10-22",
+  "description": "Sample file to demonstrate JSON Opener v2 — tree, search, schema, table & tools",
   "features": [
-    "Open JSON from the Android share sheet",
-    "Virtualized tree with expand and collapse",
-    "Full-text search across keys and values",
-    "Raw view with syntax highlighting",
+    "Open JSON via Android Share menu",
+    "Virtualized tree with expand/collapse, breadcrumbs & copy",
+    "Powerful search (regex, case-sensitive, filter)",
+    "Text view with pretty/minified & syntax highlighting",
+    "Schema & stats overview",
     "Table view for arrays of objects",
-    "Schema overview with types and paths",
-    "Works fully offline"
+    "Tools: validate, format, sort, YAML/CSV, JSONPath, flatten",
+    "Offline-ready PWA — 100% local, no upload"
   ],
   "settings": {
-    "theme": "dark",
+    "theme": "auto",
     "fontSize": 13.5,
     "autoSave": false,
-    "notifications": null
+    "notifications": null,
+    "language": "en"
   },
   "users": [
-    { "id": 1, "name": "Anna", "active": true, "score": 1280, "role": "admin" },
-    { "id": 2, "name": "Ben", "active": false, "score": 340, "role": "viewer" },
-    { "id": 3, "name": "Chiara", "active": true, "score": 900, "role": "editor" }
+    { "id": 1, "name": "Alice", "active": true, "score": 1280, "role": "admin", "tags": ["beta", "premium"] },
+    { "id": 2, "name": "Bob", "active": false, "score": 340, "role": "viewer", "tags": [] },
+    { "id": 3, "name": "Carol", "active": true, "score": 900, "role": "editor", "tags": ["beta"] },
+    { "id": 4, "name": "Dave", "active": true, "score": 720, "role": "editor", "tags": ["trial"] }
   ],
   "stats": {
-    "total": 3,
-    "average": 840,
-    "top": { "name": "Anna", "score": 1280 }
+    "total": 4,
+    "averageScore": 810,
+    "activeCount": 3,
+    "topScorer": { "name": "Alice", "score": 1280 }
   },
-  "endpoints": {
-    "api": "https://example.com/api",
-    "docs": "https://example.com/docs"
+  "nested": {
+    "level1": {
+      "level2": {
+        "level3": {
+          "value": "deeply nested — test your tree depth!",
+          "array": [1, 2, 3, { "deep": true }]
+        }
+      }
+    }
   },
-  "note": "This is a sample file — replace it with your own JSON.",
+  "mixedTypes": {
+    "string": "hello world",
+    "number": 42,
+    "float": 3.14159,
+    "boolTrue": true,
+    "boolFalse": false,
+    "nullVal": null,
+    "array": [1, "two", null, true, { "nested": "object" }],
+    "object": { "a": 1, "b": 2 }
+  },
   "emptyObject": {},
-  "emptyArray": []
+  "emptyArray": [],
+  "note": "This is a sample — edit it, or replace with your own data. Try search (Ctrl+F), schema, table view for users, and Tools → YAML/CSV."
 }
