@@ -33,6 +33,15 @@ npm run build
 npm run preview
 ```
 
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs tests and a production build on every push and pull request. Pushes to `main` also deploy `dist/` to **GitHub Pages**.
+
+In the repo: **Settings → Pages → Source: GitHub Actions**. After the first successful deploy the app is at:
+
+`https://hpmine42.github.io/json-opener-on-android/`
+
+
 ## Layout
 
 | Path | Role |
