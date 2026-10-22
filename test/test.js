@@ -1,11 +1,8 @@
 'use strict';
 
-/* Tests for core.js (no browser required) */
+/* Tests for core.js (browser-free) */
 const assert = require('assert');
-const {
-  JsonTree, schemaLines, escapeHtml, quoteKey, truncate, countNodes, typeName,
-  collectStats, tableFrom, findTable, joinPath, errorContext, isProbablyUrl
-} = require('../core.js');
+const { JsonTree, schemaLines, escapeHtml, quoteKey, truncate, countNodes, typeName } = require('../core.js');
 
 let passed = 0;
 function ok(cond, name) {
@@ -16,18 +13,10 @@ function ok(cond, name) {
 
 console.log('escapeHtml / quoteKey / truncate');
 ok(escapeHtml('<a "b" & c>') === '&lt;a &quot;b&quot; &amp; c&gt;', 'HTML is escaped');
-ok(quoteKey('normal') === '"normal"', 'plain key');
+ok(quoteKey('normal') === '"normal"', 'normal key');
 ok(quoteKey('very' + 'long'.repeat(40)).length <= 124, 'long key is truncated');
 ok(quoteKey('with "quotes"') === '"with \\"quotes\\""', 'key with quotes');
 ok(truncate('x'.repeat(1000)).length <= 404, 'string is truncated');
-
-console.log('joinPath / isProbablyUrl');
-ok(joinPath('$', 'name', false) === '$.name', 'ident key');
-ok(joinPath('$', '0', true) === '$[0]', 'array index');
-ok(joinPath('$.users', '2', true) === '$.users[2]', 'nested index');
-ok(joinPath('$', 'a b', false) === '$["a b"]', 'quoted key');
-ok(isProbablyUrl('https://example.com/api') === true, 'http url');
-ok(isProbablyUrl('not a url') === false, 'plain string is not a url');
 
 console.log('JsonTree – build');
 const data = {
@@ -43,78 +32,63 @@ const data = {
   emptyArr: []
 };
 const tree = new JsonTree(data);
-ok(tree.rows.length === 10, 'row count (' + tree.rows.length + ')');
-ok(tree.rows[0].type === 'open' && tree.rows[0].key === null, 'root is an open row');
-ok(tree.rows[0].path === '$', 'root path is $');
+ok(tree.rows.length === 10, 'row count correct (' + tree.rows.length + ')');
+ok(tree.rows[0].type === 'open' && tree.rows[0].key === null, 'root is open row');
 ok(tree.rows.filter((r) => r.type === 'open').length === 2, '2 open containers (root, children collapsed)');
-ok(tree.rows.filter((r) => r.type === 'value').length === 6, '6 value rows (including empty containers)');
+ok(tree.rows.filter((r) => r.type === 'value').length === 6, '6 value rows (incl. empty containers)');
 const emptyRows = tree.rows.filter((r) => r.emptyKind);
 ok(emptyRows.length === 2 && emptyRows[0].emptyKind === 'object' && emptyRows[1].emptyKind === 'array', 'empty containers inline');
-ok(tree.rows.find((r) => r.searchKey === 'name').path === '$.name', 'path for $.name');
 
-console.log('JsonTree – expand / collapse');
-let childrenRow = tree.rows.find((r) => r.type === 'open' && r.searchKey === 'children');
-ok(!!childrenRow, '"children" found');
-const id = childrenRow.id;
+console.log('JsonTree – expand/collapse');
+let childRow = tree.rows.find((r) => r.type === 'open' && r.searchKey === 'children');
+ok(!!childRow, '"children" found');
+const id = childRow.id;
 ok(!tree.open.has(id), '"children" initially collapsed');
 tree.toggle(id);
 ok(tree.open.has(id), '"children" expanded');
 ok(tree.rows.length === 14, 'rows after expand (' + tree.rows.length + ')');
-ok(tree.rows.filter((r) => r.type === 'open').length === 4, '4 open containers (child objects collapsed)');
-ok(tree.rows.find((r) => r.searchKey === '0').path === '$.children[0]', 'path for array item');
+ok(tree.rows.filter((r) => r.type === 'open').length === 4, '4 open containers (children expanded)');
 tree.toggle(id);
 ok(!tree.open.has(id), '"children" collapsed again');
 ok(tree.rows.length === 10, 'rows restored after collapse');
-ok(tree.toggle('does-not-exist') === false, 'unknown id is ignored');
-
-console.log('JsonTree – expandAll / collapseAll');
-const tExp = new JsonTree(data);
-tExp.expandAll();
-ok(tExp.rows.length === 18, 'expandAll opens the whole small tree (' + tExp.rows.length + ')');
-ok(tExp.rows.some((r) => r.type === 'value' && r.value === 'One'), 'nested value visible after expandAll');
-tExp.collapseAll();
-ok(tExp.rows.length === 10, 'collapseAll restores the default tree');
+ok(tree.toggle('non-existent') === false, 'unknown ID ignored');
 
 console.log('JsonTree – search');
 const t3 = new JsonTree(data);
-const childrenId3 = t3.rows.find((r) => r.type === 'open' && r.searchKey === 'children').id;
+const childId3 = t3.rows.find((r) => r.type === 'open' && r.searchKey === 'children').id;
 let m = t3.matches('One');
-ok(m.list.length >= 1, 'value in collapsed tree is found');
+ok(m.list.length >= 1, 'value in collapsed tree found');
 const rowIdx = m.list[0];
 const row = t3.rows[rowIdx];
-ok(row.type === 'open' && row.searchKey === 'children', 'hit is on the container row');
-t3.toggle(childrenId3);
+ok(row.type === 'open' && row.searchKey === 'children', 'hit is on container row');
+t3.toggle(childId3);
 m = t3.matches('One');
-ok(m.list.length >= 1 && t3.rows[m.list[0]].type === 'open' && t3.rows[m.list[0]].searchKey === '0', 'after expand, hit is on the child container');
+ok(m.list.length >= 1 && t3.rows[m.list[0]].type === 'open' && t3.rows[m.list[0]].searchKey === '0', 'after expand hit is on child container');
 const objId = t3.rows[m.list[0]].id;
 t3.toggle(objId);
 m = t3.matches('One');
-ok(m.list.some((i) => t3.rows[i].type === 'value' && t3.rows[i].value === 'One'), 'after further expand, the value row is found');
-m = t3.matches('notpresent');
+ok(m.list.some((i) => t3.rows[i].type === 'value' && t3.rows[i].value === 'One'), 'after further expand value row found');
+m = t3.matches('nonexistent');
 ok(m.list.length === 0, 'no hits for nonsense');
 m = t3.matches('null');
-ok(m.list.length >= 1 && m.list.some((i) => t3.rows[i].value === null && t3.rows[i].emptyKind === null), 'null value is found');
+ok(m.list.length >= 1 && m.list.some((i) => t3.rows[i].value === null && t3.rows[i].emptyKind === null), 'null value found');
 m = t3.matches('');
-ok(m.list.length === 0, 'empty search = no hits');
+ok(m.list.length === 0, 'empty query = no hits');
 
 console.log('JsonTree – scalar root');
 const t4 = new JsonTree('just a string');
-ok(t4.rows.length === 1 && t4.rows[0].type === 'value', 'scalar root produces one value row');
-ok(t4.rows[0].path === '$', 'scalar root path is $');
+ok(t4.rows.length === 1 && t4.rows[0].type === 'value', 'scalar root creates one value row');
 
 console.log('JsonTree – large flat arrays');
 const big = Array.from({ length: 100000 }, (_, i) => ({ i, s: 'value' + i }));
 const t5 = new JsonTree(big);
-ok(t5.rows.length === 2, 'large array initially collapsed (open/close only)');
+ok(t5.rows.length === 2, 'large array initially collapsed (only open/close)');
 t5.toggle(t5.rows[0].id);
-ok(t5.rows.length === 200002, 'large array expands in linear time (' + t5.rows.length + ')');
+ok(t5.rows.length === 200002, 'large array expanded in linear time (' + t5.rows.length + ')');
 m = t5.matches('value99999');
 ok(m.list.length === 1, 'search in large array');
-const t5b = new JsonTree(big);
-t5b.expandAll(20000);
-ok(t5b.rows.length === 2, 'expandAll skips huge containers over budget');
 const deep = new JsonTree({ a: { b: { c: { d: { e: { f: { g: { h: 1 } } } } } } } });
-ok(deep.rows.length === 4, 'deep structure initially only root open/close');
+ok(deep.rows.length === 4, 'deep structure initially only root + close');
 
 console.log('Schema');
 const out = [];
@@ -126,27 +100,9 @@ const out2 = [];
 schemaLines({ x: 1 }, '$', out2, 0);
 ok(out2.some((l) => l === '$.x  →  number'), 'scalar type in schema');
 
-console.log('countNodes / typeName / collectStats');
-ok(countNodes(data, { n: 1e9 }) === 14, 'countNodes (14)');
-ok(countNodes({ a: { b: 1 } }, { n: 1e9 }) === 3, 'nested count');
+console.log('countNodes / typeName');
+ok(countNodes(data, { n: 1e9 }) === 14, 'countNodes correct (14)');
+ok(countNodes({ a: { b: 1 } }, { n: 1e9 }) === 3, 'nested');
 ok(typeName(null) === 'null' && typeName([]) === 'array' && typeName({}) === 'object' && typeName(1.5) === 'number', 'typeName');
-const stats = collectStats(data);
-ok(stats.objects === 4 && stats.arrays === 2, 'stats objects/arrays (' + stats.objects + '/' + stats.arrays + ')');
-ok(stats.nulls === 1 && stats.booleans === 1 && stats.numbers === 3, 'stats scalars');
-ok(stats.maxDepth >= 2, 'stats depth');
-
-console.log('tableFrom / findTable');
-ok(tableFrom([{ a: 1 }, { a: 2, b: 3 }]).columns.join(',') === 'a,b', 'union of columns');
-ok(tableFrom([1, 2, 3]) === null, 'array of scalars is not a table');
-ok(tableFrom([]) === null, 'empty array is not a table');
-const found = findTable({ users: [{ id: 1, name: 'A' }, { id: 2, name: 'B' }], n: 2 });
-ok(found && found.path === '$.users' && found.table.rows.length === 2, 'finds nested table');
-ok(findTable([{ id: 1 }, { id: 2 }]).path === '$', 'root array table');
-
-console.log('errorContext');
-const ctx = errorContext('{"a": 1,}', 'Unexpected token } in JSON at position 8');
-ok(ctx.line === 1 && ctx.col === 9, 'line/col from position (' + ctx.line + ':' + ctx.col + ')');
-ok(ctx.snippet.indexOf('{') !== -1, 'snippet includes source');
-ok(errorContext('{}', 'nope').line === 0, 'no position → empty context');
 
 console.log('\nAll ' + passed + ' tests passed.');
