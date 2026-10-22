@@ -19,6 +19,7 @@ import {
   validateJSON
 } from './core'
 import { copyText, downloadFile, highlightJSON } from './utils'
+import { applyUpdate, setupPwa } from './pwa'
 
 type Page = 'home' | 'viewer' | 'info'
 type View = 'tree' | 'raw' | 'table' | 'stats'
@@ -81,6 +82,7 @@ const commandInput = ref<HTMLInputElement | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const dropOver = ref(false)
+const updateAvailable = ref(false)
 
 let deferredPrompt: { prompt: () => void } | null = null
 let toastTimer: number | null = null
@@ -775,6 +777,7 @@ function onDrop(e: DragEvent) {
 }
 
 onMounted(() => {
+  setupPwa(() => { updateAvailable.value = true })
   const saved = storage()?.getItem('json-opener-theme')
   applyTheme(saved === 'light' ? 'light' : 'dark')
   loadRecents()
@@ -812,6 +815,10 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <div v-if="updateAvailable" class="update-banner">
+    <span>A new version is ready.</span>
+    <button class="btn primary compact" @click="applyUpdate()">Reload</button>
+  </div>
   <header id="topbar">
     <button class="icon-btn" title="Back" aria-label="Back" :hidden="page === 'home'" @click="showHome">
       <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15.4 4.6 13.8 3 5 12l8.8 9 1.6-1.6L8.2 12z"/></svg>
