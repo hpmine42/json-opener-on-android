@@ -1,73 +1,87 @@
-# JSON Opener – PWA für Android
+# JSON Opener
 
-Öffnet JSON-Dateien direkt aus dem **Android-Teilen-Menü** – ohne Import, ohne Upload.
-Alles bleibt lokal auf dem Gerät.
+A small Progressive Web App that opens JSON files directly from the **Android share sheet** — no import, no upload. Everything stays on the device.
 
-## Funktionen
+Works as a standalone app on Android (Chrome) and in any desktop browser.
 
-- 📤 **Teilen → JSON Opener**: Datei in einer anderen App teilen, JSON Opener wählen, Inhalt wird sofort angezeigt
-- 🌳 **Baumansicht** mit Auf-/Zuklappen (virtualisiert – auch große Dateien laufen flüssig)
-- 🔍 **Suche** in Schlüsseln und Werten (`Strg+F` / `/`), klappt Treffer automatisch auf
-- 📄 **Rohdaten** mit Syntax-Highlighting (formatiert)
-- 🧭 **Schema-Ansicht** mit Pfaden und Typen
-- 📤/💾/📋 **Teilen, Speichern, Kopieren** der Datei
-- 📲 **Installierbar** als App auf dem Startbildschirm (Chrome/Android)
-- ⚡ **Offline-fähig** (Service Worker)
+## Features
 
-## Installation auf dem Pixel
+- **Share → JSON Opener** — share a file from another app, pick JSON Opener, the contents appear immediately
+- **Tree view** with expand/collapse (virtualized — large files stay smooth)
+- **Table view** for arrays of objects
+- **Search** across keys and values (`Ctrl+F` / `/`), auto-expands hits
+- **Raw JSON** with syntax highlighting, pretty or minified
+- **Copy path / value / JSON** — long-press or right-click a node
+- **Schema & stats** — types, paths, depth, counts
+- **Recent files** — reopen what you viewed last
+- **Paste JSON** from the clipboard
+- **Dark & light theme**
+- **Share, save, copy** the file
+- **Installable** on the home screen (Chrome/Android)
+- **Offline** (service worker)
+- **File Handling API** — open `.json` files with the installed app
 
-1. Die Seite in **Chrome** auf dem Android-Gerät öffnen.
-2. `⋮ → App installieren` (oder „Zum Startbildschirm hinzufügen“).
-3. Fertig – das `{ }`-Icon erscheint auf dem Startbildschirm, und die App taucht
-   im Teilen-Menü für `.json`-Dateien auf.
+## Install on Android
 
-> Hinweis: Das Teilen-Menü (Web Share Target) funktioniert in Chrome und
-> Chromium-basierten Browsern. Der Datei-Empfang braucht den Service Worker –
-> die App sollte nach der Installation einmal geöffnet werden.
+1. Open the page in **Chrome** on the device.
+2. `⋮ → Install app` (or “Add to Home screen”).
+3. Done — the `{ }` icon appears on the home screen, and the app shows up in the share sheet for `.json` files.
 
-## Technik
+> Note: the share sheet (Web Share Target) works in Chrome and Chromium-based browsers. Receiving files needs the service worker — open the app once after installing.
 
-| Datei | Zweck |
+## How file receiving works
+
+1. Android shares the file as `POST multipart/form-data` to the app URL (`share_target` in the manifest).
+2. The service worker intercepts the POST, reads the file, and redirects to `./?shared=1`.
+3. The app asks the worker for the last shared file (`QUERY_SHARE`) and opens it.
+
+GET links (`?json=…`) and shared text/URLs are handled as well.
+
+## Keyboard shortcuts
+
+| Shortcut | Action |
 |---|---|
-| `index.html` | Oberfläche (Start, Viewer, Info) |
-| `styles.css` | Design (dunkles Theme, PWA-Layout) |
-| `app.js` | UI-Logik, Virtualisierung, Suche, Aktionen |
-| `core.js` | Kernlogik ohne DOM (in Node testbar) |
-| `sw.js` | Service Worker: Offline-Cache + Share-Target-Empfang |
-| `manifest.webmanifest` | PWA-Manifest mit `share_target` |
-| `icons/` | App-Icons (192/512, maskable, apple-touch) |
-| `sample.json` | Beispiel-Datei |
-| `test/` | Unit-Tests für `core.js` |
+| `Ctrl/Cmd+F` or `/` | Search |
+| `T` / `R` / `L` | Tree / Raw / Table |
+| `E` / `C` | Expand all / Collapse all |
+| `↑` `↓` `←` `→` | Navigate the tree |
+| `Ctrl/Cmd+V` | Paste JSON (home screen) |
+| `?` | Help |
+| `Esc` | Close panels |
 
-### Wie der Datei-Empfang funktioniert
+## Project layout
 
-1. Android teilt die Datei als `POST multipart/form-data` an die App-URL
-   (`share_target` im Manifest).
-2. Der Service Worker fängt den POST ab, liest die Datei und leitet auf
-   `./?shared=1` weiter.
-3. Die App fragt den Worker nach der letzten geteilten Datei
-   (`QUERY_SHARE`) und öffnet sie.
+| File | Role |
+|---|---|
+| `index.html` | UI (home, viewer, help) |
+| `styles.css` | Dark/light theme, PWA layout |
+| `app.js` | UI logic, virtualization, search, actions |
+| `core.js` | Core logic without DOM (testable in Node) |
+| `sw.js` | Service worker: offline cache + share target |
+| `manifest.webmanifest` | PWA manifest with `share_target` and `file_handlers` |
+| `icons/` | App icons (192/512, maskable, apple-touch) |
+| `sample.json` | Sample file |
+| `test/` | Unit and functional tests |
 
-Zusätzlich werden GET-Links (`?json=…`) und geteilter Text/URLs behandelt.
-
-## Entwicklung
+## Development
 
 ```bash
-# Tests für die Kernlogik
+# Core, UI, service worker, and smoke tests
 node test/test.js
+node test/test-app.js
+node test/test-sw.js
+node test/test-smoke.js
 
-# Lokal testen (z. B. mit dem Android-Gerät im selben WLAN)
+# Or all at once
+npm test
+
+# Local preview (e.g. with an Android device on the same Wi-Fi)
 python3 -m http.server 8000
-# → http://<rechner-ip>:8000
+# → http://<machine-ip>:8000
 ```
 
-Für Share-Target-Tests auf dem Gerät: Die Seite muss über **HTTPS** erreichbar
-sein (Service Worker). Lokal bieten sich `npx serve` hinter einem HTTPS-Tunnel
-(z. B. Cloudflare Tunnel, ngrok) oder der Chrome-Trick `chrome://flags →
-Insecure origins treated as secure` an.
+For share-target tests on a device the page must be reachable over **HTTPS** (service worker). Locally, `npx serve` behind an HTTPS tunnel (Cloudflare Tunnel, ngrok) or the Chrome flag `chrome://flags → Insecure origins treated as secure` works.
 
-## Hinweise
+## Privacy
 
-- Die App lädt **keine** Daten hoch – alles passiert lokal im Browser.
-- Sehr große Dateien (viele MB) werden beim Öffnen geparst; die Baumansicht
-  bleibt dank Virtualisierung trotzdem flüssig.
+The app **never** uploads data — everything happens locally in the browser. Very large files are parsed on open; the tree stays smooth thanks to virtualization.

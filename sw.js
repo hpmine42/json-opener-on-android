@@ -1,12 +1,12 @@
 'use strict';
 
 /* JSON Opener – Service Worker
- * - Offline-Cache für alle App-Dateien
- * - Empfang von "Share Target" POSTs (Datei von Android teilen)
- * - Fallback-Link-Handler, falls der Share nicht als POST ankommt
+ * - Offline cache for all app files
+ * - Receive Share Target POSTs (files shared from Android)
+ * - Fallback link handler if the share arrives as GET
  */
 
-const CACHE_NAME = 'json-opener-v1';
+const CACHE_NAME = 'json-opener-v2';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -37,7 +37,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-/* Letzte per Share empfangene Daten – die App holt sie nach dem Laden ab */
+/* Last payload received via Share Target — the app fetches it after load */
 let lastShare = null;
 
 self.addEventListener('message', (event) => {
@@ -48,12 +48,12 @@ self.addEventListener('message', (event) => {
   }
 });
 
-/* ---------------------------------------------------------------
- * Share Target: Android teilt eine Datei mit dieser App.
- * Der Browser schickt einen POST (multipart/form-data) hierher.
- * Der Worker merkt sich die Daten und leitet zur App weiter;
- * die App holt sie sich per QUERY_SHARE-Nachricht.
- * ------------------------------------------------------------- */
+/* ----------------------------------------------------------------
+ * Share Target: Android shares a file with this app.
+ * The browser sends a POST (multipart/form-data) here.
+ * The worker stores the data and redirects to the app;
+ * the page then retrieves it via a QUERY_SHARE message.
+ * -------------------------------------------------------------- */
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -74,7 +74,6 @@ self.addEventListener('fetch', (event) => {
           }
         }
         lastShare = entry;
-        /* Weiterleitung zur App; die Daten holt sich die Seite per QUERY_SHARE */
         const dest = new URL('./?shared=1', event.request.url);
         return Response.redirect(dest.href, 303);
       })()
@@ -82,8 +81,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  /* Fallback: Wenn eine App die Datei als GET-Link teilt (z. B. ?json=...),
-   * fangen wir das hier ab und leiten zur App mit dem Link weiter. */
+  /* Fallback: if an app shares the file as a GET link (e.g. ?json=…),
+   * intercept it and open the app with that link. */
   if (event.request.method === 'GET' && url.origin === self.location.origin) {
     if (url.searchParams.has('json') || url.searchParams.has('share')) {
       event.respondWith(

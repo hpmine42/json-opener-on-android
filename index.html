@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>JSON Opener</title>
-  <meta name="description" content="JSON-Dateien öffnen, durchsuchen und ansehen – auf Android direkt über „Teilen“.">
-  <meta name="theme-color" content="#0b1526">
+  <meta name="description" content="Open, search, and inspect JSON files — on Android, directly from Share.">
+  <meta name="theme-color" content="#0b1220">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon-64.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -17,36 +17,57 @@
 </head>
 <body>
   <header id="topbar">
-    <button id="btn-back" class="icon-btn" title="Zurück" aria-label="Zurück" hidden>‹</button>
+    <button id="btn-back" class="icon-btn" title="Back" aria-label="Back" hidden>
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.4 4.6 13.8 3 5 12l8.8 9 1.6-1.6L8.2 12z"/></svg>
+    </button>
     <div class="brand">
       <span class="brand-glyph">{ }</span>
       <span class="brand-text">JSON Opener</span>
     </div>
     <div class="topbar-actions">
-      <button id="btn-install" class="btn ghost" hidden>App installieren</button>
-      <button id="btn-search" class="icon-btn" title="Suchen" aria-label="Suchen">⌕</button>
-      <button id="btn-menu" class="icon-btn" title="Menü" aria-label="Menü">⋯</button>
+      <button id="btn-install" class="btn ghost" hidden>Install app</button>
+      <button id="btn-theme" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
+        <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3 7 7 0 1 0 21 14.5z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 4.5a1 1 0 0 0 1-1V2a1 1 0 1 0-2 0v1.5a1 1 0 0 0 1 1zm0 15a1 1 0 0 0-1 1V22a1 1 0 1 0 2 0v-1.5a1 1 0 0 0-1-1zM5.05 6.46a1 1 0 0 0 1.41-1.41L5.4 3.99A1 1 0 0 0 4 5.4zm13.5 13.5a1 1 0 0 0-1.41 1.41l1.06 1.06a1 1 0 0 0 1.41-1.41zM4.5 12a1 1 0 0 0-1-1H2a1 1 0 1 0 0 2h1.5a1 1 0 0 0 1-1zm17.5-1h-1.5a1 1 0 1 0 0 2H22a1 1 0 1 0 0-2zM5.05 17.54 3.99 18.6A1 1 0 1 0 5.4 20l1.06-1.06a1 1 0 1 0-1.41-1.4zM18.95 6.46a1 1 0 0 0 1.41 1.41l1.06-1.06A1 1 0 1 0 20 4l-1.05 1.05zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
+      </button>
+      <button id="btn-search" class="icon-btn" title="Search" aria-label="Search" hidden>
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M10.5 4a6.5 6.5 0 0 1 5.2 10.4l3.95 3.95a1 1 0 0 1-1.4 1.4l-3.96-3.94A6.5 6.5 0 1 1 10.5 4zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z"/></svg>
+      </button>
+      <button id="btn-menu" class="icon-btn" title="Menu" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle fill="currentColor" cx="12" cy="6" r="1.7"/><circle fill="currentColor" cx="12" cy="12" r="1.7"/><circle fill="currentColor" cx="12" cy="18" r="1.7"/></svg>
+      </button>
     </div>
   </header>
 
   <main>
-    <!-- Startseite -->
+    <!-- Home -->
     <section id="page-home" class="page active">
       <div class="dropzone" id="dropzone">
-        <div class="dz-icon">‹{ }›</div>
-        <h1>JSON-Datei öffnen</h1>
-        <p>Tippe zum Auswählen oder ziehe eine Datei hierher.</p>
-        <p class="dz-hint">Du bekommst eine JSON-Datei? Teile sie und wähle <strong>JSON Opener</strong>.</p>
+        <div class="dz-icon">{ }</div>
+        <h1>Open a JSON file</h1>
+        <p>Tap to choose a file, drop one here, or paste JSON.</p>
+        <p class="dz-hint">Got a JSON file on Android? Share it and pick <strong>JSON Opener</strong>.</p>
         <div class="dz-actions">
-          <button id="btn-pick" class="btn primary">Datei auswählen</button>
-          <button id="btn-sample" class="btn">Beispiel laden</button>
+          <button id="btn-pick" class="btn primary">Choose file</button>
+          <button id="btn-paste" class="btn">Paste JSON</button>
+          <button id="btn-sample" class="btn">Load sample</button>
         </div>
         <input type="file" id="file-input" accept=".json,application/json,text/plain,application/octet-stream" hidden>
       </div>
       <div id="error-box" class="error-box" hidden>
-        <div class="error-title">⚠️ Fehler beim Öffnen</div>
+        <div id="error-title" class="error-title">Could not open file</div>
         <div id="error-msg" class="error-msg"></div>
-        <button id="btn-error-dismiss" class="btn ghost">Schließen</button>
+        <pre id="error-snippet" class="error-snippet" hidden></pre>
+        <div class="error-actions">
+          <button id="btn-error-dismiss" class="btn ghost">Dismiss</button>
+        </div>
+      </div>
+      <div id="recent-wrap" class="recent-wrap" hidden>
+        <div class="recent-head">
+          <h2>Recently opened</h2>
+          <button id="btn-clear-recent" class="btn ghost sm">Clear</button>
+        </div>
+        <div id="recent-list" class="recent-list"></div>
       </div>
     </section>
 
@@ -54,89 +75,122 @@
     <section id="page-viewer" class="page">
       <div class="viewer-head">
         <div class="file-info">
-          <span id="file-name" class="file-name">datei.json</span>
+          <span id="file-name" class="file-name">file.json</span>
           <span id="file-meta" class="file-meta"></span>
         </div>
-        <div class="viewer-actions">
-          <button id="btn-schema" class="chip" title="Schema anzeigen">Schema</button>
+        <div class="view-switch" role="tablist" aria-label="View mode">
+          <button id="view-tree" class="seg active" role="tab" aria-selected="true">Tree</button>
+          <button id="view-raw" class="seg" role="tab" aria-selected="false">Raw</button>
+          <button id="view-table" class="seg" role="tab" aria-selected="false" hidden>Table</button>
         </div>
       </div>
-      <div id="tree" class="tree" tabindex="0" aria-label="JSON-Inhalt"></div>
+      <div class="viewer-toolbar">
+        <button id="path-bar" class="path-bar" title="Copy JSON path" hidden>$</button>
+        <div class="toolbar-actions">
+          <button id="btn-expand" class="chip" title="Expand all">Expand</button>
+          <button id="btn-collapse" class="chip" title="Collapse all">Collapse</button>
+          <button id="btn-pretty" class="chip" title="Toggle pretty / minified" hidden>Pretty</button>
+          <button id="btn-schema" class="chip" title="Show schema">Schema</button>
+        </div>
+      </div>
+      <div id="stats-bar" class="stats-bar" hidden></div>
+      <div id="tree" class="tree" tabindex="0" aria-label="JSON tree"></div>
       <pre id="raw" class="raw" hidden></pre>
+      <div id="table-wrap" class="table-wrap" hidden>
+        <div id="table-caption" class="table-caption"></div>
+        <div class="table-scroll">
+          <table id="table-view" class="data-table"></table>
+        </div>
+      </div>
       <div id="search-box" class="search-box" hidden>
-        <input id="search-input" type="search" placeholder="Suchen … (⌘F / Strg+F)" autocomplete="off">
+        <input id="search-input" type="search" placeholder="Search keys &amp; values… (Ctrl+F)" autocomplete="off">
         <span id="search-count" class="search-count"></span>
-        <button id="search-prev" class="icon-btn" title="Vorheriger Treffer" aria-label="Vorheriger Treffer">↑</button>
-        <button id="search-next" class="icon-btn" title="Nächster Treffer" aria-label="Nächster Treffer">↓</button>
-        <button id="search-close" class="icon-btn" title="Schließen" aria-label="Schließen">✕</button>
+        <button id="search-prev" class="icon-btn" title="Previous match" aria-label="Previous match">↑</button>
+        <button id="search-next" class="icon-btn" title="Next match" aria-label="Next match">↓</button>
+        <button id="search-close" class="icon-btn" title="Close" aria-label="Close">✕</button>
       </div>
       <div id="toast" class="toast" hidden></div>
     </section>
 
-    <!-- Menü / Info -->
+    <!-- Info -->
     <section id="page-info" class="page">
       <div class="info-card">
         <h1>JSON Opener</h1>
-        <p class="info-sub">Öffnet JSON-Dateien direkt aus dem Android-Teilen-Menü – ohne die Datei in eine App zu importieren.</p>
+        <p class="info-sub">Opens JSON files directly from the Android share sheet — no import, no upload. Everything stays on your device.</p>
 
-        <h2>Installieren</h2>
+        <h2>Install</h2>
         <ol class="steps">
-          <li>Öffne diese Seite im <strong>Chrome</strong> auf deinem Google Pixel.</li>
-          <li>Tippe auf <strong>⋮ → „App installieren“</strong> (oder „Zum Startbildschirm hinzufügen“).</li>
-          <li>Die App erscheint mit dem <strong>{ }</strong>-Icon auf dem Startbildschirm.</li>
+          <li>Open this page in <strong>Chrome</strong> on your Android device.</li>
+          <li>Tap <strong>⋮ → “Install app”</strong> (or “Add to Home screen”).</li>
+          <li>The app appears with the <strong>{ }</strong> icon on your home screen.</li>
         </ol>
 
-        <h2>JSON-Datei öffnen</h2>
+        <h2>Open a JSON file</h2>
         <ol class="steps">
-          <li>Tippe in der geteilten Datei auf <strong>„Teilen“</strong>.</li>
-          <li>Wähle im Teilen-Menü <strong>JSON Opener</strong>.</li>
-          <li>Die Datei wird sofort geöffnet und angezeigt.</li>
+          <li>In another app, tap <strong>Share</strong> on the file.</li>
+          <li>Choose <strong>JSON Opener</strong> in the share sheet.</li>
+          <li>The file opens immediately.</li>
         </ol>
+        <p class="note">You can also choose a file, drop one onto the page, or paste JSON from the clipboard.</p>
 
-        <h2>In der App</h2>
+        <h2>In the app</h2>
         <ul class="features">
-          <li>✓ <strong>Baumansicht</strong> – Objekte &amp; Arrays auf- und zuklappen</li>
-          <li>✓ <strong>Suche</strong> – Schlüssel &amp; Werte durchsuchen (⌘F / Strg+F)</li>
-          <li>✓ <strong>Rohdaten</strong> – formatiert oder kompakt ansehen</li>
-          <li>✓ <strong>Weiterteilen</strong> – Datei als .json an andere Apps schicken</li>
-          <li>✓ <strong>Speichern</strong> – als .json-Datei herunterladen</li>
-          <li>✓ <strong>Copy</strong> – Inhalt als Text kopieren</li>
-          <li>✓ <strong>Schema</strong> – Struktur-Übersicht mit Pfaden &amp; Typen</li>
-          <li>✓ <strong>Offline</strong> – funktioniert ohne Internetverbindung</li>
+          <li>✓ <strong>Tree view</strong> — expand and collapse objects &amp; arrays</li>
+          <li>✓ <strong>Table view</strong> — arrays of objects as a spreadsheet</li>
+          <li>✓ <strong>Search</strong> — keys and values (Ctrl/Cmd+F or /)</li>
+          <li>✓ <strong>Raw JSON</strong> — pretty or minified, with highlighting</li>
+          <li>✓ <strong>Copy path</strong> — long-press a node for path, value, or JSON</li>
+          <li>✓ <strong>Share / Save / Copy</strong> — send the file to other apps</li>
+          <li>✓ <strong>Schema &amp; stats</strong> — structure, types, and depth</li>
+          <li>✓ <strong>Recent files</strong> — reopen what you viewed last</li>
+          <li>✓ <strong>Dark &amp; light</strong> — plus offline support</li>
         </ul>
 
-        <h2>Hinweise</h2>
-        <p class="note">Alle Daten bleiben auf deinem Gerät. Es werden keine Dateien hochgeladen.<br>
-        Große Dateien (mehrere MB) werden in der Baumansicht verzögert aufgebaut, damit alles flüssig bleibt.</p>
+        <h2>Keyboard shortcuts</h2>
+        <ul class="shortcuts">
+          <li><kbd>Ctrl</kbd><kbd>F</kbd> or <kbd>/</kbd> Search</li>
+          <li><kbd>T</kbd> Tree view · <kbd>R</kbd> Raw view · <kbd>L</kbd> Table view</li>
+          <li><kbd>E</kbd> Expand all · <kbd>C</kbd> Collapse all</li>
+          <li><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> Navigate the tree</li>
+          <li><kbd>Ctrl</kbd><kbd>V</kbd> Paste JSON on the home screen</li>
+          <li><kbd>?</kbd> This help · <kbd>Esc</kbd> Close panels</li>
+        </ul>
 
-        <button id="btn-info-home" class="btn primary">Zurück zur Startseite</button>
+        <h2>Privacy</h2>
+        <p class="note">All data stays on your device. Nothing is uploaded.<br>
+        Large files (several MB) are rendered with a virtualized tree so scrolling stays smooth.</p>
+
+        <button id="btn-info-home" class="btn primary">Back to home</button>
       </div>
     </section>
   </main>
 
   <nav id="bottom-bar" class="bottom-bar" hidden>
-    <button id="bb-raw" class="bb-btn" data-icon="{ }">Rohdaten</button>
-    <button id="bb-share" class="bb-btn" data-icon="📤">Teilen</button>
-    <button id="bb-save" class="bb-btn" data-icon="💾">Speichern</button>
-    <button id="bb-copy" class="bb-btn" data-icon="📋">Copy</button>
-    <button id="bb-open" class="bb-btn" data-icon="📂">Datei öffnen</button>
+    <button id="bb-raw" class="bb-btn" data-icon="{ }">Raw</button>
+    <button id="bb-share" class="bb-btn" data-icon="↗">Share</button>
+    <button id="bb-save" class="bb-btn" data-icon="↓">Save</button>
+    <button id="bb-copy" class="bb-btn" data-icon="⧉">Copy</button>
+    <button id="bb-open" class="bb-btn" data-icon="▢">Open</button>
   </nav>
 
   <div id="loading" class="loading" hidden>
     <div class="spinner"></div>
-    <div class="loading-text">Wird geladen …</div>
+    <div class="loading-text">Loading…</div>
   </div>
 
   <div id="menu-sheet" class="sheet" hidden>
     <div class="sheet-backdrop" data-close-sheet></div>
     <div class="sheet-panel">
-      <button class="sheet-item" id="menu-open">📂 Datei öffnen</button>
-      <button class="sheet-item" id="menu-raw">📄 Rohdaten ansehen</button>
-      <button class="sheet-item" id="menu-share">📤 Teilen</button>
-      <button class="sheet-item" id="menu-save">💾 Speichern</button>
-      <button class="sheet-item" id="menu-copy">📋 Copy</button>
-      <button class="sheet-item" id="menu-info">ℹ️ Info &amp; Hilfe</button>
-      <button class="sheet-item" id="menu-install">📲 App installieren</button>
+      <button class="sheet-item" id="menu-open">Open file</button>
+      <button class="sheet-item" id="menu-paste">Paste JSON</button>
+      <button class="sheet-item" id="menu-raw">Toggle raw view</button>
+      <button class="sheet-item" id="menu-expand">Expand all</button>
+      <button class="sheet-item" id="menu-collapse">Collapse all</button>
+      <button class="sheet-item" id="menu-share">Share</button>
+      <button class="sheet-item" id="menu-save">Save</button>
+      <button class="sheet-item" id="menu-copy">Copy</button>
+      <button class="sheet-item" id="menu-info">Help &amp; shortcuts</button>
+      <button class="sheet-item" id="menu-install">Install app</button>
     </div>
   </div>
 
@@ -145,8 +199,27 @@
     <div class="sheet-panel">
       <div class="sheet-title">Schema</div>
       <pre id="schema-output" class="schema-output"></pre>
-      <button class="btn primary" data-close-sheet>Schließen</button>
+      <button class="btn primary" data-close-sheet>Close</button>
     </div>
+  </div>
+
+  <div id="sheet-paste" class="sheet" hidden>
+    <div class="sheet-backdrop" data-close-sheet></div>
+    <div class="sheet-panel">
+      <div class="sheet-title">Paste JSON</div>
+      <textarea id="paste-input" class="paste-input" placeholder="{ &#10;  &#34;hello&#34;: &#34;world&#34;&#10;}" spellcheck="false"></textarea>
+      <div class="sheet-row">
+        <button id="btn-paste-open" class="btn primary">Open</button>
+        <button class="btn" data-close-sheet>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ctx-menu" class="ctx-menu" hidden>
+    <button class="ctx-item" id="ctx-copy-value">Copy value</button>
+    <button class="ctx-item" id="ctx-copy-path">Copy path</button>
+    <button class="ctx-item" id="ctx-copy-json">Copy as JSON</button>
+    <button class="ctx-item" id="ctx-expand">Expand children</button>
   </div>
 
   <script src="core.js" defer></script>

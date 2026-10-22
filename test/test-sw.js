@@ -1,9 +1,9 @@
 'use strict';
 
-/* Service-Worker-Tests: lädt sw.js in eine Node-VM mit gemocktem
- * ServiceWorkerGlobalScope und spielt die Abläufe durch:
- * install/activate, Share-POST (echtes multipart/form-data), QUERY_SHARE,
- * GET-Fallback für geteilte Links, normaler GET-Cache. */
+/* Service worker tests: load sw.js in a Node VM with a mocked
+ * ServiceWorkerGlobalScope and exercise:
+ * install/activate, Share POST (real multipart/form-data), QUERY_SHARE,
+ * GET fallback for shared links, normal GET cache. */
 
 const fs = require('fs');
 const path = require('path');
@@ -15,7 +15,7 @@ const ORIGIN = 'http://127.0.0.1:8787';
 
 let passed = 0;
 function ok(cond, name) {
-  if (!cond) throw new Error('FEHLGESCHLAGEN: ' + name);
+  if (!cond) throw new Error('FAILED: ' + name);
   passed++;
   console.log('  ✓ ' + name);
 }
@@ -23,7 +23,7 @@ function ok(cond, name) {
 /* ---------- Mocks ---------- */
 function createHarness() {
   const listeners = {};
-  const cacheStore = new Map(); /* url -> Response */
+  const cacheStore = new Map();
 
   const cacheMock = {
     addAll: async (urls) => {
@@ -59,7 +59,6 @@ function createHarness() {
     fetch: async (input) => {
       fetchCalls.push(typeof input === 'string' ? input : input.url);
       const res = new Response('<html>index</html>', { status: 200, headers: { 'Content-Type': 'text/html' } });
-      /* wie eine echte gleich-origin Antwort (im Browser type === 'basic') */
       Object.defineProperty(res, 'type', { value: 'basic' });
       return res;
     },
@@ -92,7 +91,6 @@ function fireActivate(harness) {
   return wait;
 }
 
-/* Fetch-Event: respondWith fängt die Antwort-Promise ab */
 function fireFetch(harness, request) {
   let captured = null;
   const event = {
@@ -100,7 +98,7 @@ function fireFetch(harness, request) {
     respondWith: (p) => { captured = p; }
   };
   fire(harness, 'fetch', event);
-  if (!captured) throw new Error('respondWith wurde nicht aufgerufen für ' + request.url);
+  if (!captured) throw new Error('respondWith was not called for ' + request.url);
   return Promise.resolve(captured);
 }
 
@@ -110,79 +108,79 @@ function fireFetch(harness, request) {
   console.log('Service Worker – install/activate');
   const h = createHarness();
   await fireInstall(h);
-  ok(h.cacheMock._added.length === 11, 'alle Kern-Assets gecacht (' + h.cacheMock._added.length + ')');
-  ok(h.cacheMock._added.indexOf('./core.js') !== -1, 'core.js ist im Offline-Cache');
-  ok(h.cacheMock._added.indexOf('./sample.json') !== -1, 'sample.json ist im Offline-Cache');
+  ok(h.cacheMock._added.length === 11, 'all core assets cached (' + h.cacheMock._added.length + ')');
+  ok(h.cacheMock._added.indexOf('./core.js') !== -1, 'core.js is in the offline cache');
+  ok(h.cacheMock._added.indexOf('./sample.json') !== -1, 'sample.json is in the offline cache');
   await fireActivate(h);
-  ok(true, 'activate ohne Fehler');
+  ok(true, 'activate without errors');
 
-  console.log('Service Worker – Share-POST (multipart/form-data mit Datei)');
+  console.log('Service Worker – Share POST (multipart/form-data with file)');
   const fd = new FormData();
-  fd.append('title', 'Meine Datei');
+  fd.append('title', 'My file');
   fd.append('text', '');
   fd.append('url', '');
-  fd.append('files', new File([JSON.stringify({ a: 1, b: [true, null] })], 'geteilt.json', { type: 'application/json' }));
+  fd.append('files', new File([JSON.stringify({ a: 1, b: [true, null] })], 'shared.json', { type: 'application/json' }));
   const postReq = new Request(ORIGIN + '/', { method: 'POST', body: fd });
   const postRes = await fireFetch(h, postReq);
-  ok(postRes.status === 303, '303-Redirect (' + postRes.status + ')');
+  ok(postRes.status === 303, '303 redirect (' + postRes.status + ')');
   ok((postRes.headers.get('location') || '').indexOf('shared=1') !== -1, 'Location → ?shared=1');
 
-  console.log('Service Worker – QUERY_SHARE liefert die Datei');
+  console.log('Service Worker – QUERY_SHARE returns the file');
   let received = null;
   fire(h, 'message', {
     data: { type: 'QUERY_SHARE' },
     source: { postMessage: (msg) => { received = msg; } }
   });
   await new Promise((r) => setImmediate(r));
-  ok(received && received.type === 'SHARE_TARGET', 'Antwort SHARE_TARGET');
-  ok(received.data.files && received.data.files.length === 1, 'Datei vorhanden');
+  ok(received && received.type === 'SHARE_TARGET', 'SHARE_TARGET response');
+  ok(received.data.files && received.data.files.length === 1, 'file present');
   const f = received.data.files[0];
-  ok(f.name === 'geteilt.json', 'Dateiname korrekt: ' + f.name);
-  ok(f.type === 'application/json', 'MIME-Type korrekt: ' + f.type);
+  ok(f.name === 'shared.json', 'file name: ' + f.name);
+  ok(f.type === 'application/json', 'MIME type: ' + f.type);
   const content = await f.text();
-  ok(content === JSON.stringify({ a: 1, b: [true, null] }), 'Dateiinhalt korrekt');
-  ok(received.data.title === 'Meine Datei', 'Titel übernommen');
+  ok(content === JSON.stringify({ a: 1, b: [true, null] }), 'file contents');
+  ok(received.data.title === 'My file', 'title forwarded');
 
-  console.log('Service Worker – Share-POST ohne Datei (Text)');
+  console.log('Service Worker – Share POST without file (text)');
   const h2 = createHarness();
   const fd2 = new FormData();
-  fd2.append('text', '{"nur":"text"}');
+  fd2.append('text', '{"only":"text"}');
   const postReq2 = new Request(ORIGIN + '/', { method: 'POST', body: fd2 });
   await fireFetch(h2, postReq2);
   let received2 = null;
   fire(h2, 'message', { data: { type: 'QUERY_SHARE' }, source: { postMessage: (m) => { received2 = m; } } });
   await new Promise((r) => setImmediate(r));
-  ok(received2.data.text === '{"nur":"text"}', 'Text-Share übernommen');
-  ok(received2.data.files.length === 0, 'keine Datei');
+  ok(received2.data.text === '{"only":"text"}', 'text share forwarded');
+  ok(received2.data.files.length === 0, 'no file');
 
-  console.log('Service Worker – GET-Fallback für geteilte Links');
+  console.log('Service Worker – GET fallback for shared links');
   const h3 = createHarness();
   const linkReq = new Request(ORIGIN + '/?json=' + encodeURIComponent('https://example.com/x.json'), { method: 'GET' });
   const linkRes = await fireFetch(h3, linkReq);
   const linkText = await linkRes.text();
-  ok(linkText.indexOf('index') !== -1, 'liefert index.html');
-  ok(h3.fetchCalls.some((u) => u.indexOf('file=') !== -1 && u.indexOf('example.com') !== -1), 'URL mit file= weitergeleitet');
+  ok(linkText.indexOf('index') !== -1, 'serves index.html');
+  ok(h3.fetchCalls.some((u) => u.indexOf('file=') !== -1 && u.indexOf('example.com') !== -1), 'URL forwarded with file=');
   const shareReq = new Request(ORIGIN + '/?share=1', { method: 'GET' });
   await fireFetch(h3, shareReq);
-  ok(true, '?share=1 ebenfalls behandelt');
+  ok(true, '?share=1 handled as well');
 
-  console.log('Service Worker – normaler GET mit Cache');
+  console.log('Service Worker – normal GET with cache');
   const h4 = createHarness();
   const getReq = new Request(ORIGIN + '/styles.css', { method: 'GET' });
   const getRes = await fireFetch(h4, getReq);
-  ok((await getRes.text()).indexOf('index') !== -1, 'Antwort vom Netz');
-  ok(h4.fetchCalls.some((u) => u.endsWith('/styles.css')), 'styles.css abgerufen');
-  ok(h4.cacheStore.has(ORIGIN + '/styles.css'), 'styles.css im Cache gespeichert');
+  ok((await getRes.text()).indexOf('index') !== -1, 'network response');
+  ok(h4.fetchCalls.some((u) => u.endsWith('/styles.css')), 'styles.css fetched');
+  ok(h4.cacheStore.has(ORIGIN + '/styles.css'), 'styles.css stored in cache');
 
-  console.log('Service Worker – POST nur auf App-Pfad');
+  console.log('Service Worker – POST only on app path');
   const h5 = createHarness();
-  const foreign = new Request(ORIGIN + '/fremd', { method: 'POST', body: 'x' });
+  const foreign = new Request(ORIGIN + '/other', { method: 'POST', body: 'x' });
   const foreignRes = await fireFetch(h5, foreign);
-  ok(foreignRes.status !== 303, 'kein Share-Redirect auf fremdem Pfad (' + foreignRes.status + ')');
+  ok(foreignRes.status !== 303, 'no share redirect on foreign path (' + foreignRes.status + ')');
   let received5 = null;
   fire(h5, 'message', { data: { type: 'QUERY_SHARE' }, source: { postMessage: (m) => { received5 = m; } } });
   await new Promise((r) => setImmediate(r));
-  ok(received5.data === null, 'lastShare bleibt leer');
+  ok(received5.data === null, 'lastShare stays empty');
 
-  console.log('\nAlle ' + passed + ' Service-Worker-Tests bestanden.');
+  console.log('\nAll ' + passed + ' service worker tests passed.');
 })().catch((err) => { console.error(err); process.exit(1); });
