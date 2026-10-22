@@ -1,7 +1,7 @@
 'use strict';
 
-/* Funktionale Tests für app.js mit einem DOM-Stub:
- * Beispiel laden → Viewer → Baum auf-/zuklappen → Suche → Rohdaten → Schema. */
+/* Functional tests for app.js with a DOM stub:
+ * load sample → viewer → expand/collapse → search → raw → schema. */
 
 const fs = require('fs');
 const path = require('path');
@@ -16,7 +16,7 @@ for (const m of HTML_SRC.matchAll(/id="([^"]+)"/g)) ids.add(m[1]);
 
 let passed = 0;
 function ok(cond, name, extra) {
-  if (!cond) throw new Error('FEHLGESCHLAGEN: ' + name + (extra ? ' – ' + extra : ''));
+  if (!cond) throw new Error('FAILED: ' + name + (extra ? ' – ' + extra : ''));
   passed++;
   console.log('  ✓ ' + name);
 }
@@ -27,7 +27,8 @@ const pages = ['page-home', 'page-viewer', 'page-info'].map((id) => {
   p.classList = {
     add: () => { p.active = true; },
     remove: () => { p.active = false; },
-    toggle: () => { p.active = !p.active; }
+    toggle: () => { p.active = !p.active; },
+    contains: (c) => c === 'active' && p.active
   };
   return p;
 });
@@ -42,7 +43,7 @@ function makeEl(id) {
     value: '',
     innerHTML: '',
     dataset: {},
-    classList: { add() {}, remove() {}, toggle() {} },
+    classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
     style: {},
     appendChild() {},
     remove() {},
@@ -52,10 +53,13 @@ function makeEl(id) {
     scrollTop: 0,
     clientWidth: 360,
     clientHeight: 600,
+    offsetWidth: 180,
+    offsetHeight: 160,
     tagName: 'DIV',
     _listeners: {},
     addEventListener(t, fn) { (el._listeners[t] = el._listeners[t] || []).push(fn); },
-    closest() { return null; }
+    closest() { return null; },
+    setAttribute() {}
   };
   return el;
 }
@@ -75,7 +79,7 @@ const docListeners = {};
 const documentStub = {
   getElementById: (id) => {
     if (!ids.has(id)) {
-      console.error('✗ unbekannte ID: ' + id);
+      console.error('✗ unknown id: ' + id);
       process.exitCode = 1;
     }
     return getEl(id);
@@ -83,10 +87,16 @@ const documentStub = {
   querySelectorAll: (sel) => {
     if (sel === '.page') return pages;
     if (sel === '[data-close-sheet]') return ['sheet-schema-close'].map((id) => getEl(id));
-    if (sel === '.sheet') return ['menu-sheet', 'sheet-schema'].map((id) => getEl(id));
+    if (sel === '.sheet') return ['menu-sheet', 'sheet-schema', 'sheet-paste'].map((id) => getEl(id));
     if (sel === '#bottom-bar .bb-btn') return ['bb-raw', 'bb-share', 'bb-save', 'bb-copy', 'bb-open'].map((id) => getEl(id));
     return [];
   },
+  querySelector: (sel) => {
+    if (sel === 'meta[name="theme-color"]') return { setAttribute() {} };
+    if (sel === '.error-actions') return getEl('error-box');
+    return null;
+  },
+  documentElement: { setAttribute() {} },
   createElement: (tag) => makeEl('dyn-' + tag),
   body: { appendChild() {}, removeChild() {} },
   addEventListener: (t, fn) => { (docListeners[t] = docListeners[t] || []).push(fn); },
@@ -103,7 +113,7 @@ const sandbox = {
       getRegistration: async () => undefined,
       controller: null
     },
-    clipboard: { writeText: async () => {} }
+    clipboard: { writeText: async () => {}, readText: async () => '' }
   },
   location: { search: '', href: 'http://127.0.0.1:8787/', origin: 'http://127.0.0.1:8787' },
   URLSearchParams,
@@ -118,6 +128,17 @@ const sandbox = {
   FileReader: function () { this.readAsText = () => {}; },
   JsonCore: require('../core.js'),
   scrollTo() {},
+  innerWidth: 390,
+  innerHeight: 800,
+  matchMedia: () => ({ matches: false }),
+  localStorage: (() => {
+    const mem = {};
+    return {
+      getItem: (k) => (k in mem ? mem[k] : null),
+      setItem: (k, v) => { mem[k] = String(v); },
+      removeItem: (k) => { delete mem[k]; }
+    };
+  })(),
   addEventListener: (t, fn) => { (winListeners[t] = winListeners[t] || []).push(fn); }
 };
 const winListeners = {};
@@ -128,67 +149,77 @@ vm.createContext(sandbox);
 (async () => {
   vm.runInContext(APP_SRC, sandbox, { filename: 'app.js' });
   for (const fn of winListeners.DOMContentLoaded || []) fn();
-  console.log('App initialisiert');
+  console.log('App initialized');
 
-  console.log('Beispiel laden');
+  console.log('Load sample');
   fire(getEl('btn-sample'), 'click', {});
   await new Promise((r) => setTimeout(r, 100));
-  ok(pageOf('page-viewer').active, 'Viewer aktiv');
-  ok(getEl('file-name').textContent === 'beispiel.json', 'Dateiname = beispiel.json', getEl('file-name').textContent);
-  ok(getEl('file-meta').textContent.indexOf('Einträge') !== -1, 'Meta mit Eintragszahl', getEl('file-meta').textContent);
+  ok(pageOf('page-viewer').active, 'viewer is active');
+  ok(getEl('file-name').textContent === 'sample.json', 'file name = sample.json', getEl('file-name').textContent);
+  ok(getEl('file-meta').textContent.indexOf('items') !== -1, 'meta includes item count', getEl('file-meta').textContent);
   const treeHtml = getEl('tree').innerHTML;
-  ok(treeHtml.indexOf('&quot;app&quot;') !== -1 || treeHtml.indexOf('"app"') !== -1, 'Schlüssel "app" gerendert');
-  ok(treeHtml.indexOf('JSON Opener') !== -1, 'Wert "JSON Opener" gerendert');
-  ok(getEl('tree').hidden === false && getEl('raw').hidden === true, 'Baum sichtbar, Rohdaten verborgen');
+  ok(treeHtml.indexOf('&quot;app&quot;') !== -1 || treeHtml.indexOf('"app"') !== -1, 'key "app" rendered');
+  ok(treeHtml.indexOf('JSON Opener') !== -1, 'value "JSON Opener" rendered');
+  ok(getEl('tree').hidden === false && getEl('raw').hidden === true, 'tree visible, raw hidden');
+  ok(getEl('view-table').hidden === false, 'table tab available for sample users array');
+  ok(getEl('stats-bar').hidden === false, 'stats bar shown');
+  ok(getEl('stats-bar').innerHTML.indexOf('obj') !== -1, 'stats include objects');
 
-  console.log('Baum auf-/zuklappen');
-  const featuresId = /data-toggle="(c\d+)"[^>]*>[^<]*<span class="twisty">▸[\s\S]*?"features"/.exec(treeHtml);
-  /* einfacher: ID der ersten zugeklappten Containerzeile per Suche im HTML */
+  console.log('Tree expand / collapse');
   const toggleIds = [...treeHtml.matchAll(/data-toggle="(c\d+)"/g)].map((m) => m[1]);
-  ok(toggleIds.length >= 3, 'mehrere Containerzeilen vorhanden (' + toggleIds.length + ')');
+  ok(toggleIds.length >= 3, 'several container rows present (' + toggleIds.length + ')');
   const before = getEl('tree').innerHTML.length;
   const fakeToggleTarget = { closest: (sel) => (sel === '[data-toggle]' ? { dataset: { toggle: toggleIds[1] } } : null) };
   fire(getEl('tree'), 'click', { target: fakeToggleTarget });
-  ok(getEl('tree').innerHTML.length > before, 'Aufklappen vergrößert den Baum (' + before + ' → ' + getEl('tree').innerHTML.length + ')');
+  ok(getEl('tree').innerHTML.length > before, 'expand grows the tree (' + before + ' → ' + getEl('tree').innerHTML.length + ')');
   const expanded = getEl('tree').innerHTML;
-  ok(expanded.indexOf('▾') !== -1, 'aufgeklappte Zeile zeigt ▾');
+  ok(expanded.indexOf('▾') !== -1, 'expanded row shows ▾');
 
-  console.log('Suche');
+  console.log('Search');
   fire(getEl('btn-search'), 'click', {});
   const inputEl = getEl('search-input');
-  inputEl.value = 'Anna'; /* wie die echte Eingabe im Browser */
+  inputEl.value = 'Anna';
   fire(inputEl, 'input', { target: { value: 'Anna' } });
   await new Promise((r) => setTimeout(r, 300));
   const countText = getEl('search-count').textContent;
-  ok(/^\d+\/\d+$/.test(countText), 'Trefferzahl angezeigt (' + countText + ')');
-  ok(getEl('tree').innerHTML.indexOf('match') !== -1, 'Treffer-Zeile markiert');
+  ok(/^\d+\/\d+$/.test(countText), 'hit count shown (' + countText + ')');
+  ok(getEl('tree').innerHTML.indexOf('match') !== -1, 'matching row highlighted');
   fire(getEl('search-close'), 'click', {});
-  ok(getEl('search-box').hidden, 'Suche geschlossen');
+  ok(getEl('search-box').hidden, 'search closed');
 
-  console.log('Rohdaten');
+  console.log('Raw');
   fire(getEl('bb-raw'), 'click', {});
-  ok(getEl('tree').hidden === true && getEl('raw').hidden === false, 'Rohdaten sichtbar');
-  ok(getEl('raw').innerHTML.indexOf('t-key') !== -1, 'Rohdaten hervorgehoben');
-  ok(getEl('bb-raw').textContent === 'Baum', 'Button zeigt "Baum"');
+  ok(getEl('tree').hidden === true && getEl('raw').hidden === false, 'raw visible');
+  ok(getEl('raw').innerHTML.indexOf('t-key') !== -1, 'raw highlighted');
+  ok(getEl('bb-raw').textContent === 'Tree', 'button shows "Tree"');
   fire(getEl('bb-raw'), 'click', {});
-  ok(getEl('tree').hidden === false, 'zurück zur Baumansicht');
+  ok(getEl('tree').hidden === false, 'back to tree view');
+
+  console.log('Table');
+  fire(getEl('view-table'), 'click', {});
+  ok(getEl('table-wrap').hidden === false, 'table visible');
+  ok(getEl('table-view').innerHTML.indexOf('<th>') !== -1, 'table has headers');
+  ok(getEl('table-view').innerHTML.indexOf('Anna') !== -1, 'table includes user name');
+  fire(getEl('view-tree'), 'click', {});
+  ok(getEl('tree').hidden === false, 'back to tree from table');
 
   console.log('Schema');
   fire(getEl('btn-schema'), 'click', {});
-  ok(getEl('sheet-schema').hidden === false, 'Schema-Sheet offen');
-  ok(getEl('schema-output').textContent.indexOf('$') === 0, 'Schema startet bei $');
-  ok(getEl('schema-output').textContent.indexOf('→') !== -1, 'Schema mit Typen');
+  ok(getEl('sheet-schema').hidden === false, 'schema sheet open');
+  ok(getEl('schema-output').textContent.indexOf('$') === 0, 'schema starts at $');
+  ok(getEl('schema-output').textContent.indexOf('→') !== -1, 'schema includes types');
   fireDoc('keydown', { key: 'Escape' });
-  ok(getEl('sheet-schema').hidden === true, 'Escape schließt Schema');
+  ok(getEl('sheet-schema').hidden === true, 'Escape closes schema');
 
-  console.log('Menü');
+  console.log('Menu');
   fire(getEl('btn-menu'), 'click', {});
-  ok(getEl('menu-sheet').hidden === false, 'Menü offen');
+  ok(getEl('menu-sheet').hidden === false, 'menu open');
   fire(getEl('menu-info'), 'click', {});
-  ok(pageOf('page-info').active, 'Info-Seite aktiv');
-  ok(getEl('menu-sheet').hidden === true, 'Menü nach Auswahl geschlossen');
+  ok(pageOf('page-info').active, 'info page active');
+  ok(getEl('menu-sheet').hidden === true, 'menu closed after choice');
   fire(getEl('btn-back'), 'click', {});
-  ok(pageOf('page-home').active, 'Zurück zur Startseite');
+  ok(pageOf('page-home').active, 'back to home');
+  ok(getEl('recent-wrap').hidden === false, 'recent files shown after opening sample');
 
-  console.log('\nAlle ' + passed + ' Funktionstests bestanden.');
+  console.log('\nAll ' + passed + ' functional tests passed.');
 })().catch((err) => { console.error(err); process.exit(1); });

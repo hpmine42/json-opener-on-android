@@ -1,7 +1,7 @@
 'use strict';
 
-/* Smoke-Test: lädt app.js mit einem minimalen DOM-Stub, um Fehler beim
- * Start (fehlende Element-IDs, undefinierte Referenzen) zu finden. */
+/* Smoke test: load app.js with a minimal DOM stub to catch
+ * startup errors (missing element ids, undefined references). */
 
 const fs = require('fs');
 const path = require('path');
@@ -10,7 +10,6 @@ const vm = require('vm');
 const APP_SRC = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
 const HTML_SRC = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 
-/* alle IDs aus dem HTML sammeln */
 const ids = new Set();
 for (const m of HTML_SRC.matchAll(/id="([^"]+)"/g)) ids.add(m[1]);
 for (const m of HTML_SRC.matchAll(/\$\('([^']+)'\)/g)) ids.add(m[1]);
@@ -23,7 +22,7 @@ function makeEl(id) {
     value: '',
     innerHTML: '',
     dataset: {},
-    classList: { add() {}, remove() {}, toggle() {} },
+    classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
     style: {},
     addEventListener() {},
     appendChild() {},
@@ -36,7 +35,8 @@ function makeEl(id) {
     clientHeight: 600,
     scrollHeight: 0,
     tagName: 'DIV',
-    closest() { return null; }
+    closest() { return null; },
+    setAttribute() {}
   };
 }
 
@@ -46,14 +46,13 @@ function getEl(id) {
   return elements.get(id);
 }
 
-/* Elemente, die nur dynamisch erzeugt werden */
 const dynamic = ['btn-view-as-text', 'loading'];
 
 const listeners = {};
 const documentStub = {
   getElementById: (id) => {
     if (!ids.has(id) && !dynamic.includes(id)) {
-      console.error('✗ app.js greift auf unbekannte ID zu: "' + id + '"');
+      console.error('✗ app.js references unknown id: "' + id + '"');
       process.exitCode = 1;
     }
     return getEl(id);
@@ -65,6 +64,8 @@ const documentStub = {
     if (sel === '#bottom-bar .bb-btn') return ['bb-raw', 'bb-share', 'bb-save', 'bb-copy', 'bb-open'].map(() => ({ classList: { remove() {} }, textContent: '', dataset: {} }));
     return [];
   },
+  querySelector: () => null,
+  documentElement: { setAttribute() {} },
   createElement: (tag) => makeEl(tag),
   body: { appendChild() {}, removeChild() {} },
   addEventListener: (t, fn) => { (listeners['doc:' + t] = listeners['doc:' + t] || []).push(fn); },
@@ -79,7 +80,7 @@ const navigatorStub = {
     getRegistration: async () => undefined,
     controller: null
   },
-  clipboard: { writeText: async () => {} }
+  clipboard: { writeText: async () => {}, readText: async () => '' }
 };
 
 const sandbox = {
@@ -97,6 +98,8 @@ const sandbox = {
   File: function () {},
   FileReader: function () { this.readAsText = () => {}; },
   JsonCore: require('../core.js'),
+  matchMedia: () => ({ matches: false }),
+  localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
   addEventListener: (t, fn) => { (listeners['win:' + t] = listeners['win:' + t] || []).push(fn); }
 };
 sandbox.window = sandbox;
@@ -106,12 +109,11 @@ vm.createContext(sandbox);
 try {
   vm.runInContext(APP_SRC, sandbox, { filename: 'app.js' });
 
-  /* DOMContentLoaded feuern → init() läuft */
   for (const fn of listeners['win:DOMContentLoaded'] || []) fn();
-  console.log('  ✓ app.js lädt und initialisiert ohne Fehler');
-  console.log('  ✓ kein Zugriff auf unbekannte Element-IDs');
-  console.log('\nSmoke-Test bestanden.');
+  console.log('  ✓ app.js loads and initializes without errors');
+  console.log('  ✓ no access to unknown element ids');
+  console.log('\nSmoke test passed.');
 } catch (err) {
-  console.error('\n✗ app.js wirft Fehler:', err.message);
+  console.error('\n✗ app.js threw:', err.message);
   process.exit(1);
 }

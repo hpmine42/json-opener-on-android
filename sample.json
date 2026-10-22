@@ -1,36 +1,38 @@
 {
   "app": "JSON Opener",
-  "version": "1.0.0",
-  "autor": "Dein Name",
-  "sprache": "de",
-  "veroeffentlicht": "2026-08-30",
+  "version": "2.0.0",
+  "author": "Local",
+  "published": "2026-10-22",
   "features": [
-    "JSON-Dateien per Teilen-Menü öffnen",
-    "Baumansicht mit Auf- und Zuklappen",
-    "Volltextsuche in Schlüsseln und Werten",
-    "Rohdaten-Ansicht mit Syntax-Highlighting",
-    "Schema-Übersicht",
-    "Offline-fähig"
+    "Open JSON from the Android share sheet",
+    "Virtualized tree with expand and collapse",
+    "Full-text search across keys and values",
+    "Raw view with syntax highlighting",
+    "Table view for arrays of objects",
+    "Schema overview with types and paths",
+    "Works fully offline"
   ],
-  "einstellungen": {
-    "thema": "dunkel",
-    "schriftgroesse": 13.5,
-    "automatischSpeichern": false,
-    "benachrichtigungen": null
+  "settings": {
+    "theme": "dark",
+    "fontSize": 13.5,
+    "autoSave": false,
+    "notifications": null
   },
-  "beispielDaten": {
-    "benutzer": [
-      { "id": 1, "name": "Anna", "aktiv": true, "punkte": 1280 },
-      { "id": 2, "name": "Ben", "aktiv": false, "punkte": 340 },
-      { "id": 3, "name": "Chiara", "aktiv": true, "punkte": 900 }
-    ],
-    "statistiken": {
-      "gesamt": 3,
-      "durchschnitt": 840,
-      "top": { "name": "Anna", "punkte": 1280 }
-    }
+  "users": [
+    { "id": 1, "name": "Anna", "active": true, "score": 1280, "role": "admin" },
+    { "id": 2, "name": "Ben", "active": false, "score": 340, "role": "viewer" },
+    { "id": 3, "name": "Chiara", "active": true, "score": 900, "role": "editor" }
+  ],
+  "stats": {
+    "total": 3,
+    "average": 840,
+    "top": { "name": "Anna", "score": 1280 }
   },
-  "hinweis": "Diese Datei ist nur ein Beispiel – du kannst sie nach Belieben ändern oder löschen.",
-  "leeresObjekt": {},
-  "leeresArray": []
+  "endpoints": {
+    "api": "https://example.com/api",
+    "docs": "https://example.com/docs"
+  },
+  "note": "This is a sample file — replace it with your own JSON.",
+  "emptyObject": {},
+  "emptyArray": []
 }

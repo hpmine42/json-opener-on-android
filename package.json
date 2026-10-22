@@ -1,0 +1,9 @@
+{
+  "name": "json-opener",
+  "private": true,
+  "description": "Open, search, and inspect JSON files — including files shared from Android apps.",
+  "scripts": {
+    "test": "node test/test.js && node test/test-app.js && node test/test-sw.js && node test/test-smoke.js",
+    "start": "python3 -m http.server 8000"
+  }
+}
