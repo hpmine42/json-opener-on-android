@@ -7,7 +7,7 @@
  * - Graceful fallback & cache-busting
  */
 
-const CACHE_NAME = 'json-opener-v2';
+const CACHE_NAME = 'json-opener-v3';
 const CORE_ASSETS = [
   './',
   './index.html',

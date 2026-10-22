@@ -3,10 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>JSON Opener — View & Explore JSON instantly</title>
-  <meta name="description" content="Open JSON files instantly via Android Share, drag & drop or paste. Inspect, search, validate and share — 100% local, offline-ready.">
-  <meta name="theme-color" content="#0b1526" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+  <title>JSON Opener</title>
+  <meta name="description" content="A local JSON studio for Android and the web. Open from Share, inspect, search, and export — nothing leaves the device.">
+  <meta name="theme-color" content="#0b0c10">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon-64.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -19,88 +18,94 @@
 </head>
 <body>
   <header id="topbar">
-    <button id="btn-back" class="icon-btn" title="Back" aria-label="Back" hidden>‹</button>
+    <button id="btn-back" class="icon-btn" title="Back" aria-label="Back" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M15.4 4.6 13.8 3 5 12l8.8 9 1.6-1.6L8.2 12z"/></svg>
+    </button>
     <div class="brand">
-      <span class="brand-glyph" aria-hidden="true">{ }</span>
-      <span class="brand-text">JSON Opener</span>
-      <span class="brand-badge">v2</span>
+      <span class="brand-mark" aria-hidden="true">{ }</span>
+      <div class="brand-copy">
+        <span class="brand-text">JSON Opener</span>
+        <span class="brand-badge">Studio</span>
+      </div>
     </div>
     <div class="topbar-actions">
-      <button id="btn-theme" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">◐</button>
-      <button id="btn-install" class="btn ghost" hidden>Install app</button>
-      <button id="btn-search" class="icon-btn" title="Search (Ctrl+F)" aria-label="Search">⌕</button>
-      <button id="btn-command" class="icon-btn" title="Command palette (Ctrl+K)" aria-label="Command palette">⌘</button>
-      <button id="btn-menu" class="icon-btn" title="Menu" aria-label="Menu">⋯</button>
+      <button id="btn-install" class="btn ghost compact" hidden>Install</button>
+      <button id="btn-theme" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
+        <svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3 7 7 0 1 0 21 14.5z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 4a1 1 0 0 0 1-1V2a1 1 0 1 0-2 0v1a1 1 0 0 0 1 1zm0 16a1 1 0 0 0-1 1v1a1 1 0 1 0 2 0v-1a1 1 0 0 0-1-1zM5 12a1 1 0 0 0-1-1H3a1 1 0 1 0 0 2h1a1 1 0 0 0 1-1zm16-1h-1a1 1 0 1 0 0 2h1a1 1 0 1 0 0-2zM6.3 6.3a1 1 0 0 0 1.4-1.4L6.7 3.9A1 1 0 0 0 5.3 5.3zm11.4 11.4a1 1 0 0 0-1.4 1.4l1 1a1 1 0 0 0 1.4-1.4zM17.7 6.3a1 1 0 0 0 1.4 1.4l1-1A1 1 0 1 0 18.7 5.3zM6.3 17.7a1 1 0 0 0-1.4 1.4l1 1a1 1 0 0 0 1.4-1.4zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
+      </button>
+      <button id="btn-search" class="icon-btn" title="Search (Ctrl+F)" aria-label="Search" hidden>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10.5 4a6.5 6.5 0 0 1 5.2 10.4l4 4a1 1 0 0 1-1.4 1.4l-4-4A6.5 6.5 0 1 1 10.5 4zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z"/></svg>
+      </button>
+      <button id="btn-command" class="icon-btn" title="Command palette (Ctrl+K)" aria-label="Command palette">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 6a2 2 0 1 0-2 2v8a2 2 0 1 0 2 2h8a2 2 0 1 0 2-2V8a2 2 0 1 0-2-2H8zm0 2h8v8H8V8z"/></svg>
+      </button>
+      <button id="btn-menu" class="icon-btn" title="Menu" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle fill="currentColor" cx="12" cy="6" r="1.6"/><circle fill="currentColor" cx="12" cy="12" r="1.6"/><circle fill="currentColor" cx="12" cy="18" r="1.6"/></svg>
+      </button>
     </div>
   </header>
 
-  <!-- Breadcrumbs (visible in viewer) -->
   <div id="breadcrumbs" class="breadcrumbs" hidden>
     <span class="crumb-path" id="crumb-path">$</span>
-    <span class="crumb-actions">
-      <button id="btn-copy-path" class="mini-btn" title="Copy JSONPath">Copy path</button>
-    </span>
+    <button id="btn-copy-path" class="mini-btn" title="Copy JSONPath">Copy path</button>
   </div>
 
   <main>
-    <!-- ============ HOME ============ -->
     <section id="page-home" class="page active">
-      <div class="hero">
-        <div class="hero-badge">✨ 100% local — no upload, offline ready</div>
-        <h1>Open any JSON in seconds</h1>
-        <p class="hero-sub">Share from any app, drag & drop, paste, or load from URL. Explore with a blazing-fast tree, search, schema and tools — right on your device.</p>
-      </div>
-
-      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drop JSON file here or click to choose">
-        <div class="dz-icon" aria-hidden="true">‹{ }›</div>
-        <h2>Drop a JSON file here</h2>
-        <p>Click to browse, or drag & drop anywhere on the page.</p>
-        <p class="dz-hint">Got a file in another app? Tap <strong>Share → JSON Opener</strong> and it opens instantly.</p>
-        <div class="dz-actions">
-          <button id="btn-pick" class="btn primary">Choose file</button>
-          <button id="btn-sample" class="btn">Load sample</button>
-          <button id="btn-paste" class="btn">Paste JSON</button>
+      <div class="home-shell">
+        <div class="home-intro">
+          <p class="eyebrow">Local · Private · Offline</p>
+          <h1>Open JSON.<br>See everything.</h1>
+          <p class="lede">Drop a file, paste a payload, or share from another Android app. The tree, table, and tools stay on this device.</p>
         </div>
-        <input type="file" id="file-input" accept=".json,application/json,text/plain,.jsonc,.jsonl,.geojson,.ndjson,application/octet-stream" hidden>
-      </div>
 
-      <div class="home-grid">
-        <div class="card">
-          <h3>📋 Paste JSON</h3>
-          <p>Paste raw JSON, NDJSON or JSON with comments.</p>
-          <div class="paste-row">
-            <textarea id="paste-area" rows="3" placeholder='Paste JSON here… e.g. {"hello":"world"}'></textarea>
-            <button id="btn-paste-load" class="btn primary">Open pasted JSON</button>
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drop JSON file here or click to choose">
+          <div class="dz-visual">
+            <span class="dz-icon" aria-hidden="true">{ }</span>
+          </div>
+          <h2>Drop a file here</h2>
+          <p>Click to browse, or drag JSON anywhere on this page.</p>
+          <p class="dz-hint">On Android: <strong>Share → JSON Opener</strong></p>
+          <div class="dz-actions">
+            <button id="btn-pick" class="btn primary">Choose file</button>
+            <button id="btn-sample" class="btn">Load sample</button>
+            <button id="btn-paste" class="btn">Paste JSON</button>
+          </div>
+          <input type="file" id="file-input" accept=".json,application/json,text/plain,.jsonc,.jsonl,.geojson,.ndjson,application/octet-stream" hidden>
+        </div>
+
+        <div class="intake">
+          <div class="intake-card">
+            <h3>Paste</h3>
+            <p>JSON, JSONC, or NDJSON.</p>
+            <div class="paste-row">
+              <textarea id="paste-area" rows="4" placeholder='{"hello": "world"}' spellcheck="false"></textarea>
+              <button id="btn-paste-load" class="btn primary">Open pasted JSON</button>
+            </div>
+          </div>
+          <div class="intake-card">
+            <h3>From a URL</h3>
+            <p>Public JSON (CORS must allow it).</p>
+            <div class="url-row">
+              <input id="url-input" type="url" placeholder="https://api.example.com/data.json" autocomplete="off" spellcheck="false">
+              <button id="btn-url-load" class="btn">Load URL</button>
+            </div>
+            <p class="card-hint">Or open with <code>?file=https://…</code></p>
           </div>
         </div>
-        <div class="card">
-          <h3>🔗 Load from URL</h3>
-          <p>Fetch JSON from any public URL (CORS must allow it).</p>
-          <div class="url-row">
-            <input id="url-input" type="url" placeholder="https://api.example.com/data.json" autocomplete="off" spellcheck="false">
-            <button id="btn-url-load" class="btn">Load URL</button>
-          </div>
-          <p class="card-hint">Tip: you can also open <code>?file=https://…/data.json</code> directly.</p>
-        </div>
-        <div class="card">
-          <h3>🕘 Recent files</h3>
-          <p>Your last opened files (stored locally).</p>
-          <div id="recent-list" class="recent-list"><span class="muted">No recent files yet.</span></div>
-          <button id="btn-clear-recent" class="btn ghost small">Clear history</button>
-        </div>
-      </div>
 
-      <div class="feature-grid">
-        <div class="feature"><span class="f-icon">🌳</span><div><strong>Tree view</strong><span>Virtualized, expand/collapse, breadcrumbs, copy path/value</span></div></div>
-        <div class="feature"><span class="f-icon">🔍</span><div><strong>Power search</strong><span>Regex, case-sensitive, filter mode, auto-expand hits</span></div></div>
-        <div class="feature"><span class="f-icon">📄</span><div><strong>Text & Table</strong><span>Pretty/minify, line numbers, sort keys, table for arrays</span></div></div>
-        <div class="feature"><span class="f-icon">🧭</span><div><strong>Schema & Stats</strong><span>Structure, types, depth, distribution and examples</span></div></div>
-        <div class="feature"><span class="f-icon">🛠️</span><div><strong>Tools</strong><span>Validate, format, YAML/CSV, JSONPath, flatten, diff</span></div></div>
-        <div class="feature"><span class="f-icon">⚡</span><div><strong>Fast & private</strong><span>No server, no tracking. Works offline as PWA</span></div></div>
+        <div class="recent-panel">
+          <div class="recent-head">
+            <h3>Recently opened</h3>
+            <button id="btn-clear-recent" class="btn ghost small">Clear history</button>
+          </div>
+          <div id="recent-list" class="recent-list"><span class="muted">Nothing here yet. Files you open stay on this device.</span></div>
+        </div>
       </div>
 
       <div id="error-box" class="error-box" hidden>
-        <div class="error-title">⚠️ Could not open file</div>
+        <div class="error-title">Could not open file</div>
         <div id="error-msg" class="error-msg"></div>
         <div class="error-actions">
           <button id="btn-error-dismiss" class="btn ghost">Dismiss</button>
@@ -109,44 +114,38 @@
       </div>
     </section>
 
-    <!-- ============ VIEWER ============ -->
     <section id="page-viewer" class="page">
       <div class="viewer-head">
         <div class="file-info">
           <span id="file-name" class="file-name">file.json</span>
           <span id="file-meta" class="file-meta"></span>
         </div>
-        <div class="viewer-actions">
-          <button id="btn-expand-all" class="chip" title="Expand all">Expand all</button>
-          <button id="btn-collapse-all" class="chip" title="Collapse all">Collapse all</button>
-          <button id="btn-depth" class="chip" title="Expand to next level">Depth +1</button>
-          <button id="btn-schema" class="chip primary-chip" title="Show schema & stats">Schema</button>
-          <div class="view-switch">
-            <button id="btn-view-tree" class="chip active" data-view="tree">Tree</button>
-            <button id="btn-view-raw" class="chip" data-view="raw">Text</button>
-            <button id="btn-view-table" class="chip" data-view="table">Table</button>
-            <button id="btn-view-stats" class="chip" data-view="stats">Stats</button>
-          </div>
+        <div class="view-switch" role="tablist" aria-label="View mode">
+          <button id="btn-view-tree" class="chip active" data-view="tree">Tree</button>
+          <button id="btn-view-raw" class="chip" data-view="raw">Text</button>
+          <button id="btn-view-table" class="chip" data-view="table">Table</button>
+          <button id="btn-view-stats" class="chip" data-view="stats">Stats</button>
         </div>
       </div>
 
-      <!-- Toolbar below header -->
       <div class="viewer-toolbar">
         <div class="toolbar-left">
+          <button id="btn-expand-all" class="chip" title="Expand all">Expand</button>
+          <button id="btn-collapse-all" class="chip" title="Collapse all">Collapse</button>
+          <button id="btn-depth" class="chip" title="Expand to next level">Depth +1</button>
+          <button id="btn-schema" class="chip primary-chip" title="Show schema &amp; stats">Schema</button>
           <label class="toolbar-check"><input type="checkbox" id="toggle-wrap"> Wrap</label>
           <label class="toolbar-check"><input type="checkbox" id="toggle-sort"> Sort keys</label>
           <button id="btn-copy-tree" class="mini-btn">Copy visible</button>
         </div>
         <div class="toolbar-right">
           <span id="viewer-status" class="muted small"></span>
-          <button id="btn-tools" class="btn ghost small">Tools ▾</button>
+          <button id="btn-tools" class="btn ghost small">Tools</button>
         </div>
       </div>
 
-      <!-- Tree -->
       <div id="tree" class="tree" tabindex="0" aria-label="JSON tree"></div>
 
-      <!-- Raw -->
       <div id="raw-wrap" class="raw-wrap" hidden>
         <div class="raw-toolbar">
           <button id="btn-raw-pretty" class="chip active">Pretty</button>
@@ -157,20 +156,17 @@
         <pre id="raw" class="raw"></pre>
       </div>
 
-      <!-- Table (for array of objects) -->
       <div id="table-wrap" class="table-wrap" hidden>
         <div id="table-info" class="table-info"></div>
         <div class="table-scroll"><table id="table-view" class="json-table"></table></div>
       </div>
 
-      <!-- Stats -->
       <div id="stats-view" class="stats-view" hidden></div>
 
-      <!-- Search box -->
       <div id="search-box" class="search-box" hidden>
         <div class="search-input-wrap">
-          <span class="search-icon">⌕</span>
-          <input id="search-input" type="search" placeholder="Search keys, values, paths… (Ctrl+F or /)" autocomplete="off">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M10.5 4a6.5 6.5 0 0 1 5.2 10.4l4 4a1 1 0 0 1-1.4 1.4l-4-4A6.5 6.5 0 1 1 10.5 4zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z"/></svg>
+          <input id="search-input" type="search" placeholder="Search keys, values, paths…" autocomplete="off">
           <span id="search-count" class="search-count"></span>
         </div>
         <div class="search-options">
@@ -185,21 +181,20 @@
         </div>
       </div>
 
-      <!-- Tools dropdown -->
       <div id="tools-sheet" class="sheet" hidden>
         <div class="sheet-backdrop" data-close-sheet></div>
         <div class="sheet-panel">
           <div class="sheet-title">Tools</div>
-          <button class="sheet-item" id="tool-validate">✅ Validate & show errors</button>
-          <button class="sheet-item" id="tool-format">✨ Format (prettify)</button>
-          <button class="sheet-item" id="tool-minify">📦 Minify</button>
-          <button class="sheet-item" id="tool-sort">🔤 Sort keys</button>
-          <button class="sheet-item" id="tool-yaml">🔄 Copy as YAML</button>
-          <button class="sheet-item" id="tool-csv">📊 Copy as CSV (array of objects)</button>
-          <button class="sheet-item" id="tool-csv-download">💾 Download CSV</button>
-          <button class="sheet-item" id="tool-flatten">🧩 Show flattened (copy)</button>
-          <button class="sheet-item" id="tool-path">🔍 JSONPath query…</button>
-          <button class="sheet-item" id="tool-compare">⚖️ Compare with another JSON…</button>
+          <button class="sheet-item" id="tool-validate">Validate &amp; show errors</button>
+          <button class="sheet-item" id="tool-format">Format (prettify)</button>
+          <button class="sheet-item" id="tool-minify">Minify</button>
+          <button class="sheet-item" id="tool-sort">Sort keys</button>
+          <button class="sheet-item" id="tool-yaml">Copy as YAML</button>
+          <button class="sheet-item" id="tool-csv">Copy as CSV</button>
+          <button class="sheet-item" id="tool-csv-download">Download CSV</button>
+          <button class="sheet-item" id="tool-flatten">Flatten (copy)</button>
+          <button class="sheet-item" id="tool-path">JSONPath query…</button>
+          <button class="sheet-item" id="tool-compare">Compare with another JSON…</button>
           <button class="sheet-item" data-close-sheet>Close</button>
         </div>
       </div>
@@ -207,58 +202,58 @@
       <div id="toast" class="toast" hidden></div>
     </section>
 
-    <!-- ============ INFO ============ -->
     <section id="page-info" class="page">
       <div class="info-card">
+        <p class="eyebrow">About</p>
         <h1>JSON Opener</h1>
-        <p class="info-sub">Open JSON files instantly from the Android share menu — no import, no upload. Everything stays on your device.</p>
+        <p class="info-sub">A local studio for JSON. Open files from the Android share sheet — no import, no upload.</p>
 
         <div class="info-badges">
-          <span class="badge">PWA</span><span class="badge">Offline</span><span class="badge">Private</span><span class="badge">Open source</span>
+          <span class="badge">PWA</span>
+          <span class="badge">Offline</span>
+          <span class="badge">Private</span>
         </div>
 
         <h2>Install on Android</h2>
         <ol class="steps">
-          <li>Open this page in <strong>Chrome</strong> on your Android device.</li>
-          <li>Tap <strong>⋮ → Install app</strong> (or “Add to Home screen”).</li>
-          <li>You'll see the <strong>{ }</strong> icon on your home screen and in the share sheet for <code>.json</code> files.</li>
+          <li>Open this page in <strong>Chrome</strong>.</li>
+          <li>Tap <strong>⋮ → Install app</strong>.</li>
+          <li>The app appears on the home screen and in the share sheet.</li>
         </ol>
 
-        <h2>How to open a JSON file</h2>
+        <h2>Open a file</h2>
         <ol class="steps">
-          <li>Tap <strong>Share</strong> on the file (in Files, Gmail, Drive, etc.).</li>
-          <li>Choose <strong>JSON Opener</strong> from the share menu.</li>
-          <li>The file opens instantly in the app.</li>
+          <li>Tap <strong>Share</strong> on a JSON file.</li>
+          <li>Choose <strong>JSON Opener</strong>.</li>
+          <li>It opens here, on-device.</li>
         </ol>
 
-        <h2>What you can do in the app</h2>
+        <h2>Workspace</h2>
         <ul class="features">
-          <li><strong>Tree view</strong> — expand & collapse objects/arrays, virtualized for huge files</li>
-          <li><strong>Search</strong> — keys, values & paths (Ctrl+F / /), regex & filter mode</li>
-          <li><strong>Text view</strong> — pretty/minified with syntax highlighting & line numbers</li>
-          <li><strong>Table view</strong> — ideal for arrays of objects (like spreadsheets)</li>
-          <li><strong>Schema & Stats</strong> — structure, types, depth & size insights</li>
-          <li><strong>Tools</strong> — validate, format, sort, YAML/CSV, JSONPath, flatten & diff</li>
-          <li><strong>Share / Save / Copy</strong> — send to other apps, download or copy to clipboard</li>
-          <li><strong>Offline</strong> — works without internet after first load</li>
+          <li><strong>Tree</strong> — virtualized expand/collapse, copy path or value</li>
+          <li><strong>Search</strong> — keys, values, paths; regex and filter</li>
+          <li><strong>Text</strong> — pretty or minified, with highlighting</li>
+          <li><strong>Table</strong> — arrays of objects as a spreadsheet</li>
+          <li><strong>Schema &amp; stats</strong> — types, depth, distribution</li>
+          <li><strong>Tools</strong> — validate, YAML, CSV, JSONPath, flatten</li>
         </ul>
 
-        <h2>Keyboard shortcuts</h2>
+        <h2>Shortcuts</h2>
         <div class="shortcuts">
-          <div><kbd>Ctrl</kbd>+<kbd>F</kbd> / <kbd>/</kbd> Search</div>
-          <div><kbd>Ctrl</kbd>+<kbd>K</kbd> Command palette</div>
-          <div><kbd>↑</kbd><kbd>↓</kbd> Navigate tree</div>
+          <div><kbd>Ctrl</kbd><kbd>F</kbd> Search</div>
+          <div><kbd>Ctrl</kbd><kbd>K</kbd> Commands</div>
+          <div><kbd>/</kbd> Search</div>
+          <div><kbd>↑</kbd><kbd>↓</kbd> Navigate</div>
           <div><kbd>→</kbd><kbd>←</kbd> Expand / collapse</div>
-          <div><kbd>Enter</kbd> Toggle node</div>
-          <div><kbd>Esc</kbd> Close dialogs</div>
+          <div><kbd>Esc</kbd> Close</div>
         </div>
 
         <h2>Privacy</h2>
-        <p class="note">No data is uploaded. Everything runs locally in your browser. Large files (many MB) are parsed locally; the tree stays fluid thanks to virtualization. Recent files list is stored only in <code>localStorage</code> on your device.</p>
+        <p class="note">Nothing is uploaded. Recent files and theme live only in this browser’s local storage.</p>
 
         <div class="info-actions">
           <button id="btn-info-home" class="btn primary">Back to start</button>
-          <button id="btn-shortcuts" class="btn">Shortcuts</button>
+          <button id="btn-shortcuts" class="btn">All shortcuts</button>
         </div>
       </div>
     </section>
@@ -269,8 +264,8 @@
     <button id="bb-table" class="bb-btn" data-icon="▦">Table</button>
     <button id="bb-share" class="bb-btn" data-icon="↗">Share</button>
     <button id="bb-save" class="bb-btn" data-icon="↓">Save</button>
-    <button id="bb-copy" class="bb-btn" data-icon="⎙">Copy</button>
-    <button id="bb-open" class="bb-btn" data-icon="📂">Open</button>
+    <button id="bb-copy" class="bb-btn" data-icon="⧉">Copy</button>
+    <button id="bb-open" class="bb-btn" data-icon="▢">Open</button>
   </nav>
 
   <div id="loading" class="loading" hidden>
@@ -278,31 +273,29 @@
     <div class="loading-text">Loading…</div>
   </div>
 
-  <!-- Menu sheet -->
   <div id="menu-sheet" class="sheet" hidden>
     <div class="sheet-backdrop" data-close-sheet></div>
     <div class="sheet-panel">
       <div class="sheet-title">Menu</div>
-      <button class="sheet-item" id="menu-open">📂 Open file</button>
-      <button class="sheet-item" id="menu-paste">📋 Paste JSON</button>
-      <button class="sheet-item" id="menu-url">🔗 Load from URL</button>
-      <button class="sheet-item" id="menu-raw">📄 Toggle Text view</button>
-      <button class="sheet-item" id="menu-table">▦ Table view</button>
-      <button class="sheet-item" id="menu-share">↗ Share</button>
-      <button class="sheet-item" id="menu-save">💾 Save</button>
-      <button class="sheet-item" id="menu-copy">⎙ Copy</button>
-      <button class="sheet-item" id="menu-tools">🛠️ Tools</button>
-      <button class="sheet-item" id="menu-theme">◐ Toggle theme</button>
-      <button class="sheet-item" id="menu-info">ℹ️ About & Help</button>
-      <button class="sheet-item" id="menu-install">📲 Install app</button>
+      <button class="sheet-item" id="menu-open">Open file</button>
+      <button class="sheet-item" id="menu-paste">Paste JSON</button>
+      <button class="sheet-item" id="menu-url">Load from URL</button>
+      <button class="sheet-item" id="menu-raw">Toggle text view</button>
+      <button class="sheet-item" id="menu-table">Table view</button>
+      <button class="sheet-item" id="menu-share">Share</button>
+      <button class="sheet-item" id="menu-save">Save</button>
+      <button class="sheet-item" id="menu-copy">Copy</button>
+      <button class="sheet-item" id="menu-tools">Tools</button>
+      <button class="sheet-item" id="menu-theme">Toggle theme</button>
+      <button class="sheet-item" id="menu-info">About &amp; help</button>
+      <button class="sheet-item" id="menu-install">Install app</button>
     </div>
   </div>
 
-  <!-- Schema sheet -->
   <div id="sheet-schema" class="sheet" hidden>
     <div class="sheet-backdrop" data-close-sheet></div>
     <div class="sheet-panel large">
-      <div class="sheet-title">Schema & Stats</div>
+      <div class="sheet-title">Schema &amp; stats</div>
       <div class="tabs">
         <button class="tab active" data-tab="schema">Schema</button>
         <button class="tab" data-tab="stats">Stats</button>
@@ -318,22 +311,20 @@
     </div>
   </div>
 
-  <!-- Command palette -->
   <div id="sheet-command" class="sheet" hidden>
     <div class="sheet-backdrop" data-close-sheet></div>
-    <div class="sheet-panel">
+    <div class="sheet-panel command-panel">
       <div class="sheet-title">Command palette</div>
-      <input id="command-input" type="search" placeholder="Type a command… (e.g. expand, sort, yaml, csv)" autocomplete="off">
+      <input id="command-input" type="search" placeholder="Expand, sort, yaml, csv…" autocomplete="off">
       <div id="command-list" class="command-list"></div>
     </div>
   </div>
 
-  <!-- JSONPath dialog -->
   <div id="sheet-jsonpath" class="sheet" hidden>
     <div class="sheet-backdrop" data-close-sheet></div>
     <div class="sheet-panel">
-      <div class="sheet-title">JSONPath query</div>
-      <p class="muted small">Examples: <code>$</code>, <code>$.users[0].name</code>, <code>$.store.*</code>, <code>$.items[*].price</code></p>
+      <div class="sheet-title">JSONPath</div>
+      <p class="muted small">Examples: <code>$</code>, <code>$.users[0].name</code>, <code>$.items[*].price</code></p>
       <input id="jsonpath-input" type="text" placeholder="$.your.path.here" autocomplete="off" spellcheck="false">
       <div class="sheet-actions">
         <button class="btn ghost" data-close-sheet>Close</button>
@@ -343,15 +334,14 @@
     </div>
   </div>
 
-  <!-- Shortcuts sheet -->
   <div id="sheet-shortcuts" class="sheet" hidden>
     <div class="sheet-backdrop" data-close-sheet></div>
     <div class="sheet-panel">
       <div class="sheet-title">Keyboard shortcuts</div>
       <div class="shortcuts">
-        <div><kbd>Ctrl</kbd>+<kbd>F</kbd> Search</div>
+        <div><kbd>Ctrl</kbd><kbd>F</kbd> Search</div>
         <div><kbd>/</kbd> Search</div>
-        <div><kbd>Ctrl</kbd>+<kbd>K</kbd> Command palette</div>
+        <div><kbd>Ctrl</kbd><kbd>K</kbd> Commands</div>
         <div><kbd>↑</kbd><kbd>↓</kbd> Navigate</div>
         <div><kbd>→</kbd> Expand</div>
         <div><kbd>←</kbd> Collapse</div>

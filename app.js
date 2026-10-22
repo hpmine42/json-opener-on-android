@@ -116,7 +116,7 @@
     const el = $('recent-list');
     if (!el) return;
     const list = loadRecent();
-    if (!list.length) { el.innerHTML = '<span class="muted">No recent files yet.</span>'; return; }
+    if (!list.length) { el.innerHTML = '<span class="muted">Nothing here yet. Files you open stay on this device.</span>'; return; }
     el.innerHTML = '';
     list.slice(0, 5).forEach(r => {
       const div = document.createElement('div');
@@ -1205,7 +1205,7 @@
 
     // Install
     window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); state.deferredPrompt = e; updateInstallUI(); });
-    window.addEventListener('appinstalled', () => { state.deferredPrompt = null; updateInstallUI(); toast('App installed 🎉'); });
+    window.addEventListener('appinstalled', () => { state.deferredPrompt = null; updateInstallUI(); toast('App installed'); });
     const installBtn = $('btn-install'); if (installBtn) installBtn.addEventListener('click', promptInstall);
 
     // Resize
