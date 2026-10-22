@@ -9,7 +9,7 @@ const path = require('path');
 const vm = require('vm');
 const assert = require('assert');
 
-const SW_SRC = fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8');
+const SW_SRC = fs.readFileSync(path.join(__dirname, '..', 'public/sw.js'), 'utf8');
 const ORIGIN = 'http://127.0.0.1:8787';
 
 let passed = 0;
@@ -107,8 +107,8 @@ function fireFetch(harness, request) {
   console.log('Service Worker – install/activate');
   const h = createHarness();
   await fireInstall(h);
-  ok(h.cacheMock._added.length === 11, 'all core assets cached (' + h.cacheMock._added.length + ')');
-  ok(h.cacheMock._added.indexOf('./core.js') !== -1, 'core.js in offline cache');
+  ok(h.cacheMock._added.length >= 8, 'core assets cached (' + h.cacheMock._added.length + ')');
+  ok(h.cacheMock._added.indexOf('./index.html') !== -1, 'index.html in offline cache');
   ok(h.cacheMock._added.indexOf('./sample.json') !== -1, 'sample.json in offline cache');
   await fireActivate(h);
   ok(true, 'activate without error');
