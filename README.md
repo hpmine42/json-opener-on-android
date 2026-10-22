@@ -1,38 +1,44 @@
 # JSON Opener
 
-A local **JSON studio** for Android and the web. Open files from the share sheet, drop them on the page, or paste a payload. Nothing is uploaded.
+A local **JSON studio** built with **Vue 3** and **TypeScript**. Open files from the Android share sheet, drop them on the page, or paste a payload. Nothing is uploaded.
 
-## What’s new
+## Stack
 
-The interface is rebuilt as a quieter workspace:
-
-- **Home** — one drop surface, paste and URL intake, recent files
-- **Viewer** — Tree / Text / Table / Stats as a single control
-- **Coral on ink** dark theme, warm paper light theme
-- Search docks at the top of the workspace
-- SVG chrome instead of emoji clutter
-- Same engine underneath: virtualized tree, JSONC/NDJSON, YAML/CSV, JSONPath, schema
+- Vue 3 (Composition API + `<script setup>`)
+- TypeScript
+- Vite
+- Virtualized tree engine in `src/core.ts` (DOM-free, unit-tested)
 
 ## Features
 
 - Android **Share → JSON Opener**
-- Virtualized tree with copy path / value
-- Search (regex, case, filter)
-- Pretty / minified text, table for arrays of objects
-- Schema, stats, validate, format, flatten
-- Recent files, dark/light, installable PWA, offline
+- Tree / Text / Table / Stats
+- Search (regex, case-sensitive)
+- Schema, YAML, CSV, JSONPath, flatten
+- Dark / light studio theme
+- Offline PWA
 
-## Install on Android
-
-1. Open the page in **Chrome**.
-2. `⋮ → Install app`.
-3. Share a `.json` file and pick **JSON Opener**.
-
-## Development
+## Develop
 
 ```bash
+npm install
 npm test
-python3 -m http.server 8000
+npm run dev
 ```
 
-All parsing and viewing happens in the browser. No server, no tracking.
+The dev server binds to `0.0.0.0:8000`.
+
+```bash
+npm run build
+npm run preview
+```
+
+## Layout
+
+| Path | Role |
+|---|---|
+| `src/core.ts` | Parse, tree, schema, convert |
+| `src/App.vue` | UI |
+| `src/main.ts` | Vue bootstrap + service worker |
+| `public/sw.js` | Offline cache + share target |
+| `public/manifest.webmanifest` | PWA manifest |

@@ -7,19 +7,18 @@
  * - Graceful fallback & cache-busting
  */
 
-const CACHE_NAME = 'json-opener-v3';
+const CACHE_NAME = 'json-opener-vue-v1';
 const CORE_ASSETS = [
   './',
   './index.html',
-  './styles.css',
-  './app.js',
-  './core.js',
   './sample.json',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/maskable-192.png',
-  './icons/maskable-512.png'
+  './icons/maskable-512.png',
+  './icons/favicon-64.png',
+  './icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {

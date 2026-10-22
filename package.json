@@ -1,9 +1,22 @@
 {
   "name": "json-opener",
   "private": true,
-  "description": "Open, search, and inspect JSON files — including files shared from Android apps.",
+  "type": "module",
+  "description": "Local JSON studio built with Vue 3 and TypeScript.",
   "scripts": {
-    "test": "node test/test.js && node test/test-app.js && node test/test-sw.js && node test/test-smoke.js",
-    "start": "python3 -m http.server 8000"
+    "dev": "vite --host 0.0.0.0 --port 8000",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 8000",
+    "test": "vitest run && node test/test-sw.cjs",
+    "start": "vite --host 0.0.0.0 --port 8000"
+  },
+  "dependencies": {
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.11",
+    "vitest": "^2.1.8"
   }
 }
