@@ -1,36 +1,60 @@
 {
   "app": "JSON Opener",
-  "version": "1.0.0",
-  "autor": "Dein Name",
-  "sprache": "de",
-  "veroeffentlicht": "2026-08-30",
+  "version": "2.0.0",
+  "author": "JSON Opener Team",
+  "language": "en",
+  "published": "2026-10-22",
+  "description": "Sample file to demonstrate JSON Opener v2 — tree, search, schema, table & tools",
   "features": [
-    "JSON-Dateien per Teilen-Menü öffnen",
-    "Baumansicht mit Auf- und Zuklappen",
-    "Volltextsuche in Schlüsseln und Werten",
-    "Rohdaten-Ansicht mit Syntax-Highlighting",
-    "Schema-Übersicht",
-    "Offline-fähig"
+    "Open JSON via Android Share menu",
+    "Virtualized tree with expand/collapse, breadcrumbs & copy",
+    "Powerful search (regex, case-sensitive, filter)",
+    "Text view with pretty/minified & syntax highlighting",
+    "Schema & stats overview",
+    "Table view for arrays of objects",
+    "Tools: validate, format, sort, YAML/CSV, JSONPath, flatten",
+    "Offline-ready PWA — 100% local, no upload"
   ],
-  "einstellungen": {
-    "thema": "dunkel",
-    "schriftgroesse": 13.5,
-    "automatischSpeichern": false,
-    "benachrichtigungen": null
+  "settings": {
+    "theme": "auto",
+    "fontSize": 13.5,
+    "autoSave": false,
+    "notifications": null,
+    "language": "en"
   },
-  "beispielDaten": {
-    "benutzer": [
-      { "id": 1, "name": "Anna", "aktiv": true, "punkte": 1280 },
-      { "id": 2, "name": "Ben", "aktiv": false, "punkte": 340 },
-      { "id": 3, "name": "Chiara", "aktiv": true, "punkte": 900 }
-    ],
-    "statistiken": {
-      "gesamt": 3,
-      "durchschnitt": 840,
-      "top": { "name": "Anna", "punkte": 1280 }
+  "users": [
+    { "id": 1, "name": "Alice", "active": true, "score": 1280, "role": "admin", "tags": ["beta", "premium"] },
+    { "id": 2, "name": "Bob", "active": false, "score": 340, "role": "viewer", "tags": [] },
+    { "id": 3, "name": "Carol", "active": true, "score": 900, "role": "editor", "tags": ["beta"] },
+    { "id": 4, "name": "Dave", "active": true, "score": 720, "role": "editor", "tags": ["trial"] }
+  ],
+  "stats": {
+    "total": 4,
+    "averageScore": 810,
+    "activeCount": 3,
+    "topScorer": { "name": "Alice", "score": 1280 }
+  },
+  "nested": {
+    "level1": {
+      "level2": {
+        "level3": {
+          "value": "deeply nested — test your tree depth!",
+          "array": [1, 2, 3, { "deep": true }]
+        }
+      }
     }
   },
-  "hinweis": "Diese Datei ist nur ein Beispiel – du kannst sie nach Belieben ändern oder löschen.",
-  "leeresObjekt": {},
-  "leeresArray": []
+  "mixedTypes": {
+    "string": "hello world",
+    "number": 42,
+    "float": 3.14159,
+    "boolTrue": true,
+    "boolFalse": false,
+    "nullVal": null,
+    "array": [1, "two", null, true, { "nested": "object" }],
+    "object": { "a": 1, "b": 2 }
+  },
+  "emptyObject": {},
+  "emptyArray": [],
+  "note": "This is a sample — edit it, or replace with your own data. Try search (Ctrl+F), schema, table view for users, and Tools → YAML/CSV."
 }
