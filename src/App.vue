@@ -83,6 +83,7 @@ const searchInput = ref<HTMLInputElement | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const dropOver = ref(false)
 const updateAvailable = ref(false)
+const homeTab = ref<'paste' | 'url'>('paste')
 
 let deferredPrompt: { prompt: () => void } | null = null
 let toastTimer: number | null = null
@@ -132,10 +133,12 @@ function clearRecents() {
 function showHome() {
   page.value = 'home'
   searchOpen.value = false
+  document.body.dataset.page = 'home'
 }
 
 function showInfo() {
   page.value = 'info'
+  document.body.dataset.page = 'info'
   closeSheets()
 }
 
@@ -233,6 +236,7 @@ function loadData(text: string, name: string, size: number) {
   tree.value = t
   depthLevel.value = 1
   page.value = 'viewer'
+  document.body.dataset.page = 'viewer'
   pushRecent(name, size)
   closeSearch()
   nextTick(() => {
@@ -261,6 +265,7 @@ function openAsText() {
   fileMeta.value = formatBytes(text.length) + ' · text'
   view.value = 'raw'
   page.value = 'viewer'
+  document.body.dataset.page = 'viewer'
   errorOn.value = false
   nextTick(renderRaw)
 }
@@ -419,7 +424,12 @@ function onTreeContext(e: MouseEvent) {
   e.preventDefault()
   const el = (e.target as HTMLElement).closest('[data-i]') as HTMLElement | null
   if (!el) return
-  ctxMenu.value = { x: e.clientX, y: e.clientY, i: +(el.dataset.i || 0) }
+  const pad = 12
+  const w = 200
+  const h = 160
+  const x = Math.min(Math.max(pad, e.clientX), window.innerWidth - w - pad)
+  const y = Math.min(Math.max(pad, e.clientY), window.innerHeight - h - pad)
+  ctxMenu.value = { x, y, i: +(el.dataset.i || 0) }
 }
 
 function onTreeScroll() {
@@ -777,6 +787,7 @@ function onDrop(e: DragEvent) {
 }
 
 onMounted(() => {
+  document.body.dataset.page = page.value
   setupPwa(() => { updateAvailable.value = true })
   const saved = storage()?.getItem('json-opener-theme')
   applyTheme(saved === 'light' ? 'light' : 'dark')
@@ -839,7 +850,7 @@ onUnmounted(() => {
       <button class="icon-btn" title="Search" aria-label="Search" :hidden="page !== 'viewer'" @click="openSearch">
         <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M10.5 4a6.5 6.5 0 0 1 5.2 10.4l4 4a1 1 0 0 1-1.4 1.4l-4-4A6.5 6.5 0 1 1 10.5 4zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z"/></svg>
       </button>
-      <button class="icon-btn" title="Command palette" aria-label="Commands" @click="openSheet('command')">
+      <button class="icon-btn hide-narrow" title="Command palette" aria-label="Commands" @click="openSheet('command')">
         <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M8 6a2 2 0 1 0-2 2v8a2 2 0 1 0 2 2h8a2 2 0 1 0 2-2V8a2 2 0 1 0-2-2H8zm0 2h8v8H8V8z"/></svg>
       </button>
       <button class="icon-btn" title="Menu" aria-label="Menu" @click="openSheet('menu')">
@@ -848,80 +859,74 @@ onUnmounted(() => {
     </div>
   </header>
 
-  <div class="breadcrumbs" :hidden="page !== 'viewer' || view !== 'tree'">
+  <div class="breadcrumbs" :hidden="page !== 'viewer' || view !== 'tree'" @click="copyText(crumbPath).then(ok => toast(ok ? 'Copied path' : 'Copy failed'))">
     <span class="crumb-path">{{ crumbPath }}</span>
-    <button class="mini-btn" @click="copyText(crumbPath).then(ok => toast(ok ? 'Copied path' : 'Copy failed'))">Copy path</button>
+    <button class="mini-btn hide-narrow" type="button">Copy path</button>
   </div>
 
   <main>
-    <section v-show="page === 'home'" class="page active">
+    <section v-show="page === 'home'" class="page page-home" :class="{ active: page === 'home' }">
       <div class="home-shell">
         <div class="home-intro">
-          <p class="eyebrow">Vue · TypeScript · Local</p>
-          <h1>Open JSON.<br>See everything.</h1>
-          <p class="lede">Drop a file, paste a payload, or share from another Android app. The tree, table, and tools stay on this device.</p>
+          <p class="eyebrow">Local · Private · Offline</p>
+          <h1>Open JSON</h1>
+          <p class="lede">Share from Android, pick a file, or paste. Nothing leaves this device.</p>
         </div>
         <div class="dropzone" :class="{ dragover: dropOver }" tabindex="0" role="button" @click="fileInput?.click()" @dragover.prevent="dropOver = true" @dragleave="dropOver = false" @drop="onDrop">
           <div class="dz-visual"><span class="dz-icon">{ }</span></div>
           <h2>Drop a file here</h2>
-          <p>Click to browse, or drag JSON anywhere on this page.</p>
           <p class="dz-hint">On Android: <strong>Share → JSON Opener</strong></p>
           <div class="dz-actions" @click.stop>
             <button class="btn primary" @click="fileInput?.click()">Choose file</button>
-            <button class="btn" @click="loadSample">Load sample</button>
-            <button class="btn" @click="document.getElementById('paste-area')?.focus()">Paste JSON</button>
+            <button class="btn" @click="loadSample">Sample</button>
           </div>
           <input ref="fileInput" type="file" accept=".json,application/json,text/plain,.jsonc,.jsonl,.geojson,.ndjson" hidden @change="openFile(($event.target as HTMLInputElement).files?.[0] || null); ($event.target as HTMLInputElement).value = ''">
         </div>
         <div class="intake">
-          <div class="intake-card">
-            <h3>Paste</h3>
-            <p>JSON, JSONC, or NDJSON.</p>
-            <div class="paste-row">
-              <textarea id="paste-area" v-model="pasteArea" rows="4" placeholder='{"hello": "world"}' spellcheck="false"></textarea>
-              <button class="btn primary" @click="pasteOpen">Open pasted JSON</button>
-            </div>
+          <div class="intake-tabs" role="tablist">
+            <button type="button" class="chip" :class="{ active: homeTab === 'paste' }" @click="homeTab = 'paste'">Paste</button>
+            <button type="button" class="chip" :class="{ active: homeTab === 'url' }" @click="homeTab = 'url'">URL</button>
           </div>
-          <div class="intake-card">
-            <h3>From a URL</h3>
-            <p>Public JSON (CORS must allow it).</p>
-            <div class="url-row">
-              <input v-model="urlInput" type="url" placeholder="https://api.example.com/data.json" @keydown.enter="urlInput && loadURL(urlInput)">
-              <button class="btn" @click="urlInput && loadURL(urlInput)">Load URL</button>
-            </div>
+          <div v-show="homeTab === 'paste'" class="intake-card">
+            <textarea id="paste-area" v-model="pasteArea" rows="4" placeholder='{"hello": "world"}' spellcheck="false"></textarea>
+            <button class="btn primary" @click="pasteOpen">Open pasted JSON</button>
+          </div>
+          <div v-show="homeTab === 'url'" class="intake-card">
+            <input v-model="urlInput" type="url" placeholder="https://api.example.com/data.json" @keydown.enter="urlInput && loadURL(urlInput)">
+            <button class="btn" @click="urlInput && loadURL(urlInput)">Load URL</button>
           </div>
         </div>
         <div class="recent-panel">
           <div class="recent-head">
             <h3>Recently opened</h3>
-            <button class="btn ghost small" @click="clearRecents">Clear history</button>
+            <button class="btn ghost small" @click="clearRecents">Clear</button>
           </div>
           <div class="recent-list">
-            <span v-if="!recents.length" class="muted">Nothing here yet. Files you open stay on this device.</span>
+            <span v-if="!recents.length" class="muted">Nothing here yet.</span>
             <button v-for="r in recents" :key="r.name + r.at" class="recent-item" @click="toast('Open a file to view ' + r.name + ' again')">
-              <span>{{ r.name }}</span>
+              <span class="recent-name">{{ r.name }}</span>
               <span class="muted">{{ formatBytes(r.size) }}</span>
             </button>
           </div>
         </div>
-      </div>
-      <div v-if="errorOn" class="error-box">
-        <div class="error-title">{{ errorTitle }}</div>
-        <div class="error-msg">{{ errorMsg }}</div>
-        <div class="error-actions">
-          <button class="btn ghost" @click="errorOn = false">Dismiss</button>
-          <button class="btn" @click="openAsText">Open as text</button>
+        <div v-if="errorOn" class="error-box">
+          <div class="error-title">{{ errorTitle }}</div>
+          <div class="error-msg">{{ errorMsg }}</div>
+          <div class="error-actions">
+            <button class="btn ghost" @click="errorOn = false">Dismiss</button>
+            <button class="btn" @click="openAsText">Open as text</button>
+          </div>
         </div>
       </div>
     </section>
 
-    <section v-show="page === 'viewer'" class="page" style="display:flex" :style="{ display: page === 'viewer' ? 'flex' : 'none' }">
+    <section v-show="page === 'viewer'" class="page page-viewer" :class="{ active: page === 'viewer' }">
       <div class="viewer-head">
         <div class="file-info">
           <span class="file-name">{{ fileName }}</span>
           <span class="file-meta">{{ fileMeta }}</span>
         </div>
-        <div class="view-switch">
+        <div class="view-switch" role="tablist" aria-label="View">
           <button class="chip" :class="{ active: view === 'tree' }" @click="setView('tree')">Tree</button>
           <button class="chip" :class="{ active: view === 'raw' }" @click="setView('raw')">Text</button>
           <button class="chip" :class="{ active: view === 'table' }" @click="setView('table')">Table</button>
@@ -932,30 +937,31 @@ onUnmounted(() => {
         <div class="toolbar-left">
           <button class="chip" @click="expandAll">Expand</button>
           <button class="chip" @click="collapseAll">Collapse</button>
-          <button class="chip" @click="depthPlus">Depth +1</button>
+          <button class="chip hide-narrow" @click="depthPlus">Depth +1</button>
           <button class="chip primary-chip" @click="openSchema">Schema</button>
-          <label class="toolbar-check"><input v-model="wrap" type="checkbox" @change="renderRaw"> Wrap</label>
-          <label class="toolbar-check"><input v-model="sortKeys" type="checkbox" @change="doSort"> Sort keys</label>
+          <label class="toolbar-check hide-narrow"><input v-model="wrap" type="checkbox" @change="renderRaw"> Wrap</label>
+          <label class="toolbar-check hide-narrow"><input v-model="sortKeys" type="checkbox" @change="doSort"> Sort keys</label>
         </div>
         <div class="toolbar-right">
-          <span class="muted small">{{ viewerStatus }}</span>
+          <span class="muted small hide-narrow">{{ viewerStatus }}</span>
           <button class="btn ghost small" @click="openSheet('tools')">Tools</button>
         </div>
       </div>
       <div v-show="searchOpen" class="search-box">
-        <div class="search-input-wrap">
-          <input ref="searchInput" v-model="searchQuery" type="search" placeholder="Search keys, values, paths…" @input="onSearchInput" @keydown.enter.prevent="jumpMatch($event.shiftKey ? -1 : 1)" @keydown.esc="closeSearch">
-          <span class="search-count">{{ searchCount }}</span>
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <input ref="searchInput" v-model="searchQuery" type="search" placeholder="Search…" @input="onSearchInput" @keydown.enter.prevent="jumpMatch($event.shiftKey ? -1 : 1)" @keydown.esc="closeSearch">
+            <span class="search-count">{{ searchCount }}</span>
+          </div>
+          <div class="search-nav">
+            <button class="icon-btn" aria-label="Previous" @click="jumpMatch(-1)">↑</button>
+            <button class="icon-btn" aria-label="Next" @click="jumpMatch(1)">↓</button>
+            <button class="icon-btn" aria-label="Close search" @click="closeSearch">✕</button>
+          </div>
         </div>
         <div class="search-options">
           <label><input v-model="searchRegex" type="checkbox" @change="runSearch(searchQuery)"> Regex</label>
           <label><input v-model="searchCase" type="checkbox" @change="runSearch(searchQuery)"> Aa</label>
-          <label><input v-model="searchFilter" type="checkbox"> Filter</label>
-        </div>
-        <div class="search-nav">
-          <button class="icon-btn" @click="jumpMatch(-1)">↑</button>
-          <button class="icon-btn" @click="jumpMatch(1)">↓</button>
-          <button class="icon-btn" @click="closeSearch">✕</button>
         </div>
       </div>
       <div v-show="view === 'tree'" ref="treeEl" class="tree" tabindex="0" @click="onTreeClick" @contextmenu="onTreeContext" @scroll="onTreeScroll" @keydown="onTreeKey"></div>
@@ -974,7 +980,7 @@ onUnmounted(() => {
       <div v-show="view === 'stats'" class="stats-view" v-html="statsHtml"></div>
     </section>
 
-    <section v-show="page === 'info'" class="page" style="overflow:auto">
+    <section v-show="page === 'info'" class="page page-info" :class="{ active: page === 'info' }">
       <div class="info-card">
         <p class="eyebrow">About</p>
         <h1>JSON Opener</h1>
@@ -1002,8 +1008,6 @@ onUnmounted(() => {
   </main>
 
   <nav class="bottom-bar" :hidden="page !== 'viewer'">
-    <button class="bb-btn" data-icon="{ }" :class="{ active: view === 'raw' }" @click="setView(view === 'tree' ? 'raw' : 'tree')">Text</button>
-    <button class="bb-btn" data-icon="▦" :class="{ active: view === 'table' }" @click="setView('table')">Table</button>
     <button class="bb-btn" data-icon="↗" @click="shareFile">Share</button>
     <button class="bb-btn" data-icon="↓" @click="saveFile">Save</button>
     <button class="bb-btn" data-icon="⧉" @click="copyAll">Copy</button>
@@ -1028,6 +1032,7 @@ onUnmounted(() => {
       <button class="sheet-item" @click="closeSheets(); saveFile()">Save</button>
       <button class="sheet-item" @click="closeSheets(); copyAll()">Copy</button>
       <button class="sheet-item" @click="closeSheets(); openSheet('tools')">Tools</button>
+      <button class="sheet-item" @click="closeSheets(); openSheet('command')">Commands</button>
       <button class="sheet-item" @click="closeSheets(); toggleTheme()">Toggle theme</button>
       <button class="sheet-item" @click="closeSheets(); showInfo()">About &amp; help</button>
     </div>
