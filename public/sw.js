@@ -5,7 +5,7 @@
  * Share Target POST still intercepted here.
  */
 
-const CACHE_NAME = 'json-opener-vue-v2';
+const CACHE_NAME = 'json-opener-vue-v3';
 const CORE_ASSETS = [
   './',
   './index.html',
